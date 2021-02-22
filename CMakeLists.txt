@@ -12,9 +12,9 @@ link_libraries(sfml-audio sfml-graphics sfml-network sfml-system sfml-window)
 
 file(GLOB all_SRCS
     "${PROJECT_SOURCE_DIR}/include/*.h"
-    "${PROJECT_SOURCE_DIR}/include/*.hpp"
-    "${PROJECT_SOURCE_DIR}/source/*.c"
+    "${PROJECT_SOURCE_DIR}/include/tools/*.h
     "${PROJECT_SOURCE_DIR}/source/*.cpp"
+    "${PROJECT_SOURCE_DIR}/source/tools/*.cpp
 )
 
 set(CMAKE_CXX_STANDARD 11)

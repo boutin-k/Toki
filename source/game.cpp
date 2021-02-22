@@ -1,7 +1,14 @@
 #include "game.h"
-#include <SFML/Window/Event.hpp>
+#include "forest.h"
+#include "tools/tkpoint.h"
+
+#include "SFML/Window/Event.hpp"
+#include "SFML/Graphics/RenderTexture.hpp"
+#include "SFML/Graphics/Texture.hpp"
+
 #include <iostream>
 #include <cmath>
+#include <array>
 
 #define FRAMERATE 30
 
@@ -11,32 +18,30 @@ static const sf::Time sTimePerFrame = sf::seconds(1.f / FRAMERATE);
  * @brief Game::Game
  */
 Game::Game(void)
-    : mWindow(sf::VideoMode(1024, 640, 32), "TokiTori"),
-      mBackgroundImage{{"Media/forest_bg01.png"},
-                       {"Media/forest_bg02.png"},
-                       {"Media/forest_bg_light.png"},
-                       {"Media/forest_bg_floor3.png"},
-                       {"Media/forest_bg03.png"},
-                       {"Media/forest_bg_floor2.png"},
-                       {"Media/forest_bg_light.png"}},
-      mBackgroundGrid("Media/background1.png") {
-  mBackgroundImage[0].setScale(2.f, 2.f);
-  mBackgroundImage[1].setPosition(360.f, -50.f);
-  mBackgroundImage[1].setScale(2.2f, 2.2f);
-  mBackgroundImage[2].setPosition(384.f, 0.f);
-  mBackgroundImage[2].setScale(4.4f, 4.4f);
-  mBackgroundImage[3].setPosition(400.f, 130.f);
-  mBackgroundImage[3].setScale(1.8f, 1.8f);
-  mBackgroundImage[4].setPosition(-460.f, -185.f);
-  mBackgroundImage[4].setScale(1.5f, 1.5f);
-  mBackgroundImage[5].setPosition(660.f, -10.f);
-  mBackgroundImage[5].setScale(1.2f, 1.2f);
-  mBackgroundImage[6].setPosition(100.f, 0.f);
-  mBackgroundImage[6].setScale(6.2f, 6.2f);
+    : mWindow(sf::VideoMode(960, 600, 32), "TokiTori", sf::Style::Titlebar | sf::Style::Close),
+      mBackgroundImage{{"Media/bg01.png"}, {"Media/forest_bg_light.png"}, {"Media/bg02.png"}, {}} {
+  // bg_light
+  mBackgroundImage[1].setPosition(384.f, 0.f);
+  mBackgroundImage[1].setScale(4.4f, 4.4f);
+  // bg_light
+  mBackgroundImage[3].setTexture(*mBackgroundImage[1].getTexture());
+  mBackgroundImage[3].setPosition(95.f, 0.f);
+  mBackgroundImage[3].setScale(6.2f, 6.2f);
 
   mWindow.setFramerateLimit(FRAMERATE);
 
-  mPlayer.setPosition(131.f, 89.f);
+  mLevel = new Forest(mWindow.getSize());
+  mLevel->createLevel();
+
+  mPlayer.setLevel(mLevel);
+  mPlayer.setPosition(448.f, 320.f);
+}
+
+Game::~Game(void) {
+  if (mLevel != nullptr) {
+    delete mLevel;
+    mLevel = nullptr;
+  }
 }
 
 /**
@@ -117,28 +122,27 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed) {
 void Game::update(const sf::Time& deltaTime) {
   // If Toki Tori has not appear : do nothing
   //  if (mPlayer.isVisible()) {
-  //    sf::Vector2f movement(0.f, 0.f);
-  //        if (mIsMovingRight)
-  //          movement.x += sPlayerSpeed;
-  //        else if (mIsMovingLeft)
-  //          movement.x -= sPlayerSpeed;
-  //        else if (mIsMovingUp)
-  //          movement.y -= sPlayerSpeed;
-  //        else if (mIsMovingDown)
-  //          movement.y += sPlayerSpeed;
-  //    mPlayer.move(movement * deltaTime.asSeconds());
-  //  }
+  sf::Vector2f _movement(0.f, 0.f);
+  if (mIsMovingRight)
+    _movement.x -= 130;
+  else if (mIsMovingLeft)
+    _movement.x += 130;
+  else if (mIsMovingUp)
+    _movement.y += 130;
+  else if (mIsMovingDown)
+    _movement.y -= 130;
+//  mLevel->move(_movement * deltaTime.asSeconds());
 
-  if (mPlayer.getState() == TkPlayer::state::finish) mWindow.close();
+  if (mPlayer.getState() == TkPlayer::anim::finish) mWindow.close();
 
   // clang-format off
-  enum TkPlayer::movement movement =
-      (mIsEscapePress) ? TkPlayer::movement::back  :
-      (mIsMovingLeft)  ? TkPlayer::movement::left  :
-      (mIsMovingRight) ? TkPlayer::movement::right :
-      (mIsMovingUp)    ? TkPlayer::movement::up    :
-      (mIsMovingDown)  ? TkPlayer::movement::down  :
-                         TkPlayer::movement::none;
+  enum tk::gesture movement =
+      (mIsEscapePress) ? tk::gesture::back  :
+      (mIsMovingLeft)  ? tk::gesture::left  :
+      (mIsMovingRight) ? tk::gesture::right :
+      (mIsMovingUp)    ? tk::gesture::up    :
+      (mIsMovingDown)  ? tk::gesture::down  :
+                         tk::gesture::none;
   // clang-format on
   mPlayer.setMovement(movement);
   mPlayer.move(deltaTime);
@@ -150,14 +154,11 @@ void Game::update(const sf::Time& deltaTime) {
 void Game::render() {
   mWindow.clear(sf::Color(255, 255, 255, 255));
   // If Toki Tori has not appear : do nothing
-  mWindow.draw(mBackgroundGrid);
   mWindow.draw(mBackgroundImage[0]);
   mWindow.draw(mBackgroundImage[1]);
   mWindow.draw(mBackgroundImage[2]);
   mWindow.draw(mBackgroundImage[3]);
-  mWindow.draw(mBackgroundImage[4]);
-  mWindow.draw(mBackgroundImage[5]);
-  mWindow.draw(mBackgroundImage[6]);
+  mWindow.draw(mLevel->getSprite());
   if (mPlayer.isVisible())
     mWindow.draw(mPlayer.drawableSprite());
   mWindow.display();

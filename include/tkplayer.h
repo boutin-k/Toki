@@ -10,23 +10,25 @@
 
 #include <unordered_map>
 #include <functional>
+#include <iostream>
 #include <vector>
 
 class TkPlayer {
 
   struct animMachine {
-    uint spriteBegin;
-    uint spriteEnd;
+    uint32_t spriteBegin;
+    uint32_t spriteEnd;
+    float spriteSpeed;
 
     TkAnimation* image;
-    std::function<sf::Vector2f(uint)> func;
+    std::function<sf::Vector2f(uint32_t)> func;
     bool transitionOnLast;
-    std::vector<std::pair<tk::gesture, uint>> transition;
-    std::unordered_map<uint, sf::Music*> sound;
+    std::vector<std::pair<tk::gesture, uint32_t>> transition;
+    std::unordered_map<uint32_t, sf::Music*> sound;
   };
 
  public:
-  enum anim : uint {
+  enum anim : uint32_t {
     appear,
     standFront,
     standLeft,
@@ -62,7 +64,11 @@ class TkPlayer {
     }
   }
 
-  void setLevel(TkLevel* level) {mCurrentWorld = level;}
+  void setLevel(TkLevel* level) {
+    mLevel = level;
+    setPosition(mLevel->resetPosition());
+  }
+
   void setPosition(float positionX, float positionY);
   void setPosition(const sf::Vector2f& position);
   void move(const sf::Time& deltaTime);
@@ -79,7 +85,7 @@ class TkPlayer {
   enum anim animationState = anim::EOL_State;
   enum tk::gesture movementState = tk::gesture::none;
 
-  TkAnimation* mCurrentImage{nullptr};
+  TkAnimation* mToki{nullptr};
 
   TkAnimation mAppear;
   TkAnimation mRun;
@@ -91,19 +97,20 @@ class TkPlayer {
   TkAnimation mClimb;
   TkAnimation mDizzy;
 
-  sf::Music mAppearSound;
-  sf::Music mTurnSound;
-  sf::Music mJumpSound;
+  sf::Music mAppearSnd;
+  sf::Music mTurnSnd;
+  sf::Music mJumpSnd;
   sf::Music mFootLeftSnd;
   sf::Music mFootRightSnd;
+  sf::Music mFallSnd;
 
-  TkLevel* mCurrentWorld{nullptr};
+  TkLevel* mLevel{nullptr};
 
   std::unordered_map<TkPlayer::anim, animMachine> mAnimation;
 
   sf::Vector2f mPosition{0.f, 0.f};
 
-  uint mDizzyCounter{0U};
+  uint32_t mDizzyCounter{0U};
 };
 
 #endif // TKPLAYER_H

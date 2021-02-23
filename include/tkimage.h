@@ -15,9 +15,7 @@ class TkImage : public sf::Sprite
   TkImage(const sf::Texture& texture);
 
   void loadFromFile(const std::string& filepath);
-//  inline const sf::Vector2f getGlobalOrigin() { return getPosition() + getOrigin(); }
 
-// private:
   sf::Texture mTexture;
 };
 

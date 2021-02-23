@@ -7,9 +7,21 @@
  * @param rectangle
  * @param nbSprite
  */
-TkAnimation::TkAnimation(const std::string& filename,
-                                 const sf::IntRect& rectangle)
+TkAnimation::TkAnimation(const std::string& filename, const sf::IntRect& rectangle)
     : TkImage(filename), mCurrentRect(rectangle) {
+  mSpritePerLine = static_cast<unsigned int>(getLocalBounds().width) / rectangle.width;
+
+  setTextureRect(rectangle);
+  setOrigin((rectangle.width>>1) + rectangle.left, (rectangle.height>>1) + rectangle.top);
+}
+
+/**
+ * @brief TkAnimation::TkAnimation
+ * @param texture
+ * @param rectangle
+ */
+TkAnimation::TkAnimation(const sf::Texture& texture, const sf::IntRect& rectangle)
+    : TkImage(texture), mCurrentRect(rectangle) {
   mSpritePerLine = static_cast<unsigned int>(getLocalBounds().width) / rectangle.width;
 
   setTextureRect(rectangle);

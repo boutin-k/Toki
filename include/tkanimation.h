@@ -8,6 +8,7 @@ class TkAnimation: public TkImage
 {
  public:
   TkAnimation(const std::string& filename, const sf::IntRect& rectangle);
+  TkAnimation(const sf::Texture& texture, const sf::IntRect& rectangle);
 
   inline uint getCurrentSprite(void) { return mCurrentSprite; }
   inline uint getFirstSprite(void) { return mFirstSprite; }

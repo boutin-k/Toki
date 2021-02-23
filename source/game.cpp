@@ -31,10 +31,9 @@ Game::Game(void)
   mWindow.setFramerateLimit(FRAMERATE);
 
   mLevel = new Forest(mWindow.getSize());
-  mLevel->createLevel();
+  mLevel->createLevel("01_ForestFalls.tokilevel");
 
   mPlayer.setLevel(mLevel);
-  mPlayer.setPosition(448.f, 320.f);
 }
 
 Game::~Game(void) {
@@ -121,7 +120,6 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed) {
  */
 void Game::update(const sf::Time& deltaTime) {
   // If Toki Tori has not appear : do nothing
-  //  if (mPlayer.isVisible()) {
   sf::Vector2f _movement(0.f, 0.f);
   if (mIsMovingRight)
     _movement.x -= 130;
@@ -131,7 +129,6 @@ void Game::update(const sf::Time& deltaTime) {
     _movement.y += 130;
   else if (mIsMovingDown)
     _movement.y -= 130;
-//  mLevel->move(_movement * deltaTime.asSeconds());
 
   if (mPlayer.getState() == TkPlayer::anim::finish) mWindow.close();
 
@@ -146,6 +143,7 @@ void Game::update(const sf::Time& deltaTime) {
   // clang-format on
   mPlayer.setMovement(movement);
   mPlayer.move(deltaTime);
+  mLevel->render();
 }
 
 /**

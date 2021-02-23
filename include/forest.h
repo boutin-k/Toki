@@ -2,6 +2,9 @@
 #define FOREST_H
 
 #include "tklevel.h"
+#include "tkanimation.h"
+
+#include "SFML/Audio/Music.hpp"
 #include "SFML/Graphics/Rect.hpp"
 #include "SFML/System/Vector2.hpp"
 
@@ -9,22 +12,18 @@
 
 class Forest: public TkLevel
 {
-  struct mapData {
-    uint width;
-    uint height;
-    std::vector<uint> board;
-  };
-
  public:
   Forest(const sf::Vector2u& windowSize);
+  ~Forest();
 
-  void createLevel(void) override;
-  sf::Vector2f move(const sf::Vector2f& offset) override;
+  void createLevel(const std::string&) override;
   tk::action isMovable(const sf::Vector2f& origin, tk::gesture) override;
 
+  void render() override;
+  void eggChecker(const sf::FloatRect&) override;
+
  private:
-  mapData data;
-  sf::Vector2u _windowSize;
+  std::vector<TkAnimation> _eggList;
 
   // clang-format off
   sf::IntRect sprites[59]{
@@ -49,6 +48,9 @@ class Forest: public TkLevel
     {256, 96, 32, 32}, {288, 96, 32, 32}, {320, 96, 32, 32}
   };
   // clang-format on
+
+  sf::Music mEggSnd;
+
 };
 
 #endif // FOREST_H

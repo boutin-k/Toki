@@ -26,12 +26,13 @@ TkImage::TkImage(const std::string& filename) {
 /**
  * @brief TkImage::loadFromFile
  * @param filename
+ * @return
  */
-void TkImage::loadFromFile(const std::string &filename) {
-  if (!mTexture.loadFromFile(filename)) {
-    // Handle loading error
-    throw std::runtime_error("Could not load image file '" + filename + "'");
-  }
+bool TkImage::loadFromFile(const std::string& filename) {
+  if (!_texture.loadFromFile(filename))
+    return false;
+
 //  mTexture.setSmooth(true);
-  setTexture(mTexture);
+  setTexture(_texture);
+  return true;
 }

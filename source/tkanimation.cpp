@@ -8,8 +8,8 @@
  * @param nbSprite
  */
 TkAnimation::TkAnimation(const std::string& filename, const sf::IntRect& rectangle)
-    : TkImage(filename), mCurrentRect(rectangle) {
-  mSpritePerLine = static_cast<unsigned int>(getLocalBounds().width) / rectangle.width;
+    : TkImage(filename), _currentRect(rectangle) {
+  _spritePerLine = static_cast<unsigned int>(getLocalBounds().width) / rectangle.width;
 
   setTextureRect(rectangle);
   setOrigin((rectangle.width>>1) + rectangle.left, (rectangle.height>>1) + rectangle.top);
@@ -21,8 +21,8 @@ TkAnimation::TkAnimation(const std::string& filename, const sf::IntRect& rectang
  * @param rectangle
  */
 TkAnimation::TkAnimation(const sf::Texture& texture, const sf::IntRect& rectangle)
-    : TkImage(texture), mCurrentRect(rectangle) {
-  mSpritePerLine = static_cast<unsigned int>(getLocalBounds().width) / rectangle.width;
+    : TkImage(texture), _currentRect(rectangle) {
+  _spritePerLine = static_cast<unsigned int>(getLocalBounds().width) / rectangle.width;
 
   setTextureRect(rectangle);
   setOrigin((rectangle.width>>1) + rectangle.left, (rectangle.height>>1) + rectangle.top);
@@ -34,16 +34,16 @@ TkAnimation::TkAnimation(const sf::Texture& texture, const sf::IntRect& rectangl
  */
 uint TkAnimation::nextSprite(void) {
   // Loop
-  if (mCurrentSprite > mLastSprite) {
-    mCurrentSprite = mFirstSprite;
+  if (_currentSprite > _lastSprite) {
+    _currentSprite = _firstSprite;
   }
 
   // left, top, width, height
   sf::IntRect rectangle(
-      mCurrentRect.width * (mCurrentSprite % mSpritePerLine),
-      mCurrentRect.width * (mCurrentSprite / mSpritePerLine),
-      mCurrentRect.width, mCurrentRect.height);
+      _currentRect.width * (_currentSprite % _spritePerLine),
+      _currentRect.width * (_currentSprite / _spritePerLine),
+      _currentRect.width, _currentRect.height);
   setTextureRect(rectangle);
 
-  return(mCurrentSprite++);
+  return(_currentSprite++);
 }

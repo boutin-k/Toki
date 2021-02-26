@@ -2,40 +2,37 @@
 #define GAME_H
 
 #include "SFML/Graphics/RenderWindow.hpp"
-#include "SFML/Graphics/RenderTexture.hpp"
 #include "SFML/Window/Keyboard.hpp"
 
-#include "tkplayer.h"
 #include "tklevel.h"
 #include "tkimage.h"
 
 class Game {
  public:
-  Game(void);
-  ~Game(void);
-  void run(void);
+  Game();
+  ~Game();
+  void run();
 
  private:
   void processEvents();
-  void update(const sf::Time&);
+  void update();
   void render();
   void handlePlayerInput(sf::Keyboard::Key key, bool isPressed);
 
  private:
-  sf::RenderWindow mWindow;
+  sf::RenderWindow _window;
 
-  TkImage mBackgroundImage[4];
-  TkPlayer mPlayer;
-  TkLevel *mLevel{nullptr};
+  TkImage _backgroundImage[4];
+  TkLevel* _level{nullptr};
 
-  bool mIsMovingUp = false;
-  bool mIsMovingDown = false;
-  bool mIsMovingLeft = false;
-  bool mIsMovingRight = false;
-  bool mIsEscapePress = false;
+  bool _movingUp{false};
+  bool _movingDown{false};
+  bool _movingLeft{false};
+  bool _movingRight{false};
+  bool _escape{false};
 
-
-  sf::RenderTexture renderTexture;
+  TkImage _cursor;
+  TkImage _score;
 };
 
 

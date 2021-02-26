@@ -1,14 +1,7 @@
 #include "game.h"
 #include "forest.h"
-#include "tools/tkpoint.h"
 
 #include "SFML/Window/Event.hpp"
-#include "SFML/Graphics/RenderTexture.hpp"
-#include "SFML/Graphics/Texture.hpp"
-
-#include <iostream>
-#include <cmath>
-#include <array>
 
 #define FRAMERATE 30
 
@@ -18,28 +11,42 @@ static const sf::Time sTimePerFrame = sf::seconds(1.f / FRAMERATE);
  * @brief Game::Game
  */
 Game::Game(void)
-    : mWindow(sf::VideoMode(960, 600, 32), "TokiTori", sf::Style::Titlebar | sf::Style::Close),
-      mBackgroundImage{{"Media/bg01.png"}, {"Media/forest_bg_light.png"}, {"Media/bg02.png"}, {}} {
+    : _window(sf::VideoMode(960, 600, 32), "TokiTori",
+              sf::Style::Titlebar | sf::Style::Close),
+      _backgroundImage{{"Media/bg01.png"},
+                       {"Media/forest_bg_light.png"},
+                       {"Media/bg02.png"},
+                       {}} {
+  // Manage custom cursor
+  if (_cursor.loadFromFile("Media/pathcursor.png")) {
+    // Hide system cursor
+    _window.setMouseCursorVisible(false);
+    _cursor.setOrigin(_cursor.getLocalBounds().width / 2.f,
+                      _cursor.getLocalBounds().height / 2.f);
+  }
+  _window.setFramerateLimit(FRAMERATE);
+
+  if (_score.loadFromFile("Media/score.png")) {
+    _score.setPosition(850.f, 20.f);
+  }
+
   // bg_light
-  mBackgroundImage[1].setPosition(384.f, 0.f);
-  mBackgroundImage[1].setScale(4.4f, 4.4f);
+  _backgroundImage[1].setPosition(384.f, 0.f);
+  _backgroundImage[1].setScale(4.4f, 4.4f);
   // bg_light
-  mBackgroundImage[3].setTexture(*mBackgroundImage[1].getTexture());
-  mBackgroundImage[3].setPosition(95.f, 0.f);
-  mBackgroundImage[3].setScale(6.2f, 6.2f);
+  _backgroundImage[3].setTexture(*_backgroundImage[1].getTexture());
+  _backgroundImage[3].setPosition(95.f, 0.f);
+  _backgroundImage[3].setScale(6.2f, 6.2f);
 
-  mWindow.setFramerateLimit(FRAMERATE);
 
-  mLevel = new Forest(mWindow.getSize());
-  mLevel->createLevel("01_ForestFalls.tokilevel");
-
-  mPlayer.setLevel(mLevel);
+  _level = new Forest(_window.getSize());
+  _level->createLevel("01_ForestFalls.tokilevel");
 }
 
 Game::~Game(void) {
-  if (mLevel != nullptr) {
-    delete mLevel;
-    mLevel = nullptr;
+  if (_level != nullptr) {
+    delete _level;
+    _level = nullptr;
   }
 }
 
@@ -50,14 +57,17 @@ void Game::run(void) {
   sf::Clock clock;
   sf::Time timeSinceLastUpdate = sf::Time::Zero;
 
-  while (mWindow.isOpen()) {
+  while (_window.isOpen()) {
     processEvents();
     timeSinceLastUpdate += clock.restart();
 
     while (timeSinceLastUpdate > sTimePerFrame) {
       timeSinceLastUpdate -= sTimePerFrame;
-      update(sTimePerFrame);
+      update();
     }
+    // Set cursor position
+    _cursor.setPosition(static_cast<sf::Vector2f>(sf::Mouse::getPosition(_window)));
+
     render();
   }
 }
@@ -67,7 +77,7 @@ void Game::run(void) {
  */
 void Game::processEvents(void) {
   sf::Event event;
-  while (mWindow.pollEvent(event)) {
+  while (_window.pollEvent(event)) {
     switch (event.type) {
       case sf::Event::KeyPressed:
         handlePlayerInput(event.key.code, true);
@@ -76,10 +86,10 @@ void Game::processEvents(void) {
         handlePlayerInput(event.key.code, false);
         break;
       case sf::Event::Closed:
-        mWindow.close();
+        _window.close();
         break;
       case sf::Event::MouseButtonPressed:
-        if (!mPlayer.isVisible()) mPlayer.setVisible();
+        if (_level->isIdle()) _level->start();
         break;
       default:
         break;
@@ -93,71 +103,51 @@ void Game::processEvents(void) {
  * @param isPressed
  */
 void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed) {
+  // clang-format off
   switch (key) {
-    case sf::Keyboard::Escape:
-      mIsEscapePress = true;
-      break;
-    case sf::Keyboard::Up:
-      mIsMovingUp = isPressed;
-      break;
-    case sf::Keyboard::Down:
-      mIsMovingDown = isPressed;
-      break;
-    case sf::Keyboard::Left:
-      mIsMovingLeft = isPressed;
-      break;
-    case sf::Keyboard::Right:
-      mIsMovingRight = isPressed;
-      break;
-    default:
-      break;
+    case sf::Keyboard::Escape: _escape      = true;      break;
+    case sf::Keyboard::Up:     _movingUp    = isPressed; break;
+    case sf::Keyboard::Down:   _movingDown  = isPressed; break;
+    case sf::Keyboard::Left:   _movingLeft  = isPressed; break;
+    case sf::Keyboard::Right:  _movingRight = isPressed; break;
+    default: break;
   }
+  // clang-format on
 }
 
 /**
  * @brief Game::update
  * @param deltaTime
  */
-void Game::update(const sf::Time& deltaTime) {
-  // If Toki Tori has not appear : do nothing
-  sf::Vector2f _movement(0.f, 0.f);
-  if (mIsMovingRight)
-    _movement.x -= 130;
-  else if (mIsMovingLeft)
-    _movement.x += 130;
-  else if (mIsMovingUp)
-    _movement.y += 130;
-  else if (mIsMovingDown)
-    _movement.y -= 130;
-
-  if (mPlayer.getState() == TkPlayer::anim::finish) mWindow.close();
+void Game::update() {
+//  if (mPlayer.getState() == TkPlayer::anim::finish) mWindow.close();
 
   // clang-format off
-  enum tk::gesture movement =
-      (mIsEscapePress) ? tk::gesture::back  :
-      (mIsMovingLeft)  ? tk::gesture::left  :
-      (mIsMovingRight) ? tk::gesture::right :
-      (mIsMovingUp)    ? tk::gesture::up    :
-      (mIsMovingDown)  ? tk::gesture::down  :
-                         tk::gesture::none;
+  enum tk::gesture gesture =
+      (_escape)       ? tk::gesture::back  :
+      (_movingLeft)   ? tk::gesture::left  :
+      (_movingRight)  ? tk::gesture::right :
+      (_movingUp)     ? tk::gesture::up    :
+      (_movingDown)   ? tk::gesture::down  :
+                        tk::gesture::none;
   // clang-format on
-  mPlayer.setMovement(movement);
-  mPlayer.move(deltaTime);
-  mLevel->render();
+  _level->updateGesture(gesture);
+  _level->render();
 }
 
 /**
  * @brief Game::render
  */
 void Game::render() {
-  mWindow.clear(sf::Color(255, 255, 255, 255));
+  _window.clear(sf::Color(255, 255, 255, 255));
   // If Toki Tori has not appear : do nothing
-  mWindow.draw(mBackgroundImage[0]);
-  mWindow.draw(mBackgroundImage[1]);
-  mWindow.draw(mBackgroundImage[2]);
-  mWindow.draw(mBackgroundImage[3]);
-  mWindow.draw(mLevel->getSprite());
-  if (mPlayer.isVisible())
-    mWindow.draw(mPlayer.drawableSprite());
-  mWindow.display();
+  _window.draw(_backgroundImage[0]);
+  _window.draw(_backgroundImage[1]);
+  _window.draw(_backgroundImage[2]);
+  _window.draw(_backgroundImage[3]);
+
+  _window.draw(_level->getSprite());
+  _window.draw(_score);
+  _window.draw(_cursor);
+  _window.display();
 }

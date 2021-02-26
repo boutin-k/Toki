@@ -14,9 +14,9 @@ class TkImage : public sf::Sprite
   TkImage(const std::string& filepath);
   TkImage(const sf::Texture& texture);
 
-  void loadFromFile(const std::string& filepath);
+  bool loadFromFile(const std::string& filepath);
 
-  sf::Texture mTexture;
+  sf::Texture _texture;
 };
 
 #endif // TKIMAGE_H

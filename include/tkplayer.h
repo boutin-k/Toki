@@ -3,89 +3,40 @@
 
 #include "tkanimation.h"
 #include "tkgesture.h"
-#include "tklevel.h"
+#include "tkentity.h"
 
-#include "SFML/System/Clock.hpp"
 #include "SFML/Audio/Music.hpp"
 
 #include <unordered_map>
-#include <functional>
-#include <iostream>
-#include <vector>
 
-class TkPlayer {
+class TkLevel;
 
-  struct animMachine {
-    uint32_t spriteBegin;
-    uint32_t spriteEnd;
-    float spriteSpeed;
-
-    TkAnimation* image;
-    std::function<sf::Vector2f(uint32_t)> func;
-    bool transitionOnLast;
-    std::vector<std::pair<tk::gesture, uint32_t>> transition;
-    std::unordered_map<uint32_t, sf::Music*> sound;
-  };
+class TkPlayer : public TkEntity {
 
  public:
+  // clang-format off
   enum anim : uint32_t {
-    appear,
-    standFront,
-    standLeft,
-    standRight,
-    standBack,
-    quarterLeft,
-    quarterRight,
-    turnLeft,
-    turnRight,
-    runLeft,
-    runRight,
-    jumpUpLeft,
-    jumpUpRight,
-    jumpDownLeft,
-    jumpDownRight,
-    fallFront,
-    fallLeft,
-    fallRight,
-    dizzy,
-    climbUp,
-    climbDown,
-    levelComplete,
-    finish,
-    EOL_State
-  };
+    idle, appear, standFront, standLeft, standRight, standBack, quarterLeft, quarterRight, turnLeft, turnRight, runLeft, runRight,
+    jumpUpLeft, jumpUpRight, jumpDownLeft, jumpDownRight, fallFront, fallLeft, fallRight, dizzy, climbUp, climbDown, levelComplete,
+    finish };
+  // clang-format on
 
-  TkPlayer(void);
+  TkPlayer();
 
-  inline bool isVisible(void) { return animationState != anim::EOL_State; }
-  inline void setVisible(void) {
-    if (animationState == anim::EOL_State) {
-      animationState = anim::appear;
-    }
-  }
-
-  void setLevel(TkLevel* level) {
-    mLevel = level;
-    setPosition(mLevel->resetPosition());
+  inline anim getState() { return _animState; }
+  inline void setVisible() {
+    if (_animState == anim::idle) _animState = anim::appear;
   }
 
   void setPosition(float positionX, float positionY);
   void setPosition(const sf::Vector2f& position);
-  void move(const sf::Time& deltaTime);
-  void setMovement(const enum tk::gesture& movement);
-
-  const sf::Drawable& drawableSprite(void);
-  anim getState(void) { return animationState; }
-
+  sf::Vector2f move(TkLevel& level, const enum tk::gesture& gesture = tk::gesture::none);
 
  private:
-  void gestureHandler();
+  void gestureHandler(const TkLevel& level);
 
  private:
-  enum anim animationState = anim::EOL_State;
-  enum tk::gesture movementState = tk::gesture::none;
-
-  TkAnimation* mToki{nullptr};
+  enum anim _animState = anim::idle;
 
   TkAnimation mAppear;
   TkAnimation mRun;
@@ -104,11 +55,7 @@ class TkPlayer {
   sf::Music mFootRightSnd;
   sf::Music mFallSnd;
 
-  TkLevel* mLevel{nullptr};
-
-  std::unordered_map<TkPlayer::anim, animMachine> mAnimation;
-
-  sf::Vector2f mPosition{0.f, 0.f};
+  std::unordered_map<TkPlayer::anim, animMachine> _animMap;
 
   uint32_t mDizzyCounter{0U};
 };

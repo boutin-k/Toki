@@ -10,25 +10,23 @@ class TkAnimation: public TkImage
   TkAnimation(const std::string& filename, const sf::IntRect& rectangle);
   TkAnimation(const sf::Texture& texture, const sf::IntRect& rectangle);
 
-  inline uint getCurrentSprite(void) { return mCurrentSprite; }
-  inline uint getFirstSprite(void) { return mFirstSprite; }
-  inline uint getLastSprite(void) { return mLastSprite; }
+  inline uint getCurrentSprite(void) { return _currentSprite; }
+  inline uint getFirstSprite(void) { return _firstSprite; }
+  inline uint getLastSprite(void) { return _lastSprite; }
 
   inline void resetSprite(uint first, uint last) {
-    mLastSprite = last;
-    mCurrentSprite = mFirstSprite = first;
+    _lastSprite = last;
+    _currentSprite = _firstSprite = first;
   }
   uint nextSprite(void);
 
  private:
-  uint mSpritePerLine{0U};
-  uint mCurrentSprite{0U};
-  uint mFirstSprite{0U};
-  uint mLastSprite{0U};
+  uint _spritePerLine{0U};
+  uint _currentSprite{0U};
+  uint _firstSprite{0U};
+  uint _lastSprite{0U};
 
-  sf::IntRect mCurrentRect{0,0,0,0};
-
-  bool mReverse = false;
+  sf::IntRect _currentRect{0,0,0,0};
 };
 
 #endif // TKANIMATION_H

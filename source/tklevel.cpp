@@ -5,7 +5,10 @@
  * @param windowSize
  */
 TkLevel::TkLevel(const sf::Vector2u& windowSize)
-    :_windowSize(windowSize) {}
+    :_windowSize(windowSize) {
+    if (!_escapeEggSnd.openFromFile("Media/sfx [12].wav"))
+      std::cerr << "Error. Can't load sound file Media/sfx [12].wav" << std::endl;
+}
 
 /**
  * @brief Destructor
@@ -21,12 +24,10 @@ TkLevel::~TkLevel(){
  * @param offset
  * @return
  */
-sf::Vector2f TkLevel::move(const sf::Vector2f& offset) {
+void TkLevel::move(const sf::Vector2f& offset) {
   if (offset.x != 0.f || offset.y != 0.f) {
-    sf::Vector2f startPos = levelSprite.getPosition();
 
     levelSprite.move(-offset);
-
     sf::Vector2f finalPos = levelSprite.getPosition();
     sf::Vector2u limits =
         sf::Vector2u{_data.levelWidth << 5, _data.levelHeight << 5} - _windowSize;
@@ -44,7 +45,29 @@ sf::Vector2f TkLevel::move(const sf::Vector2f& offset) {
     }
 
     levelSprite.setPosition(finalPos);
-    return offset - (startPos - finalPos);
   }
-  return offset;
+}
+
+/**
+ * @brief TkLevel::eggChecker
+ * @param position
+ */
+void TkLevel::eggChecker(const sf::FloatRect& position) {
+  for (auto it = _eggList.begin(); it != _eggList.end();) {
+    if ((*it)->getState() == TkEgg::anim::free) {
+      delete (*it);
+      it = _eggList.erase(it);
+    } else {
+      sf::FloatRect rect =
+          (*it)->_entity->getTransform().transformRect({8, 4, 48, 60});
+      if (rect.intersects(position)) {
+        if (!(*it)->isReleased()) {
+          (*it)->release();
+          _escapeEggSnd.stop();
+          _escapeEggSnd.play();
+        }
+      }
+      ++it;
+    }
+  }
 }

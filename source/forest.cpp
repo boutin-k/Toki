@@ -1,7 +1,6 @@
 #include "forest.h"
 #include "tkanimation.h"
 
-#include <iostream>
 #include <fstream>
 
 /**
@@ -10,12 +9,12 @@
  */
 Forest::Forest(const sf::Vector2u& windowSize)
     : TkLevel(windowSize) {
-
-  if (!mEggSnd.openFromFile("Media/sfx [12].wav"))
-    std::cerr << "Error. Can't load sound file Media/sfx [12].wav" << std::endl;
 }
 
-Forest::~Forest(void) {}
+Forest::~Forest(void) {
+  for (auto egg : _eggList) delete egg;
+  _eggList.clear();
+}
 
 /**
  * @brief Forest::createLevel
@@ -41,79 +40,54 @@ void Forest::createLevel(const std::string& levelName) {
 //  file.write(reinterpret_cast<char*>(&data.height), sizeof(uint));
 //  file.write(reinterpret_cast<char*>(data.board.data()), sizeof(unsigned char) * 880);
 
-  if (!mapTexture.loadFromFile("Media/forest_tiles.png"))
-    throw "Can't load map forest tiles file";
   if (!mapRender.create(_data.levelWidth<<5, _data.levelHeight<<5))
     throw "Can't create map forest renderTexture";
   mapRender.clear(sf::Color::Transparent);
 
-  if (!eggTexture.loadFromFile("Media/forest_egg.png"))
-    throw "Can't load forest_egg sprite file";
-  if (!eggRender.create(_data.levelWidth<<5, _data.levelHeight<<5))
-    throw "Can't create forest_egg renderTexture";
+  TkImage forestTiles("Media/forest_tiles.png");
 
   // Build the board
   uint32_t size = _data.getLevelSize();
   for (uint32_t i = 0U; i < size; ++i) {
+
     // Populate the egg list
     if (_data.levelMap[i] == 0xFE) {
-      TkAnimation egg(eggTexture, {0, 0, 64, 64});
-      egg.resetSprite(0, 39);
-      egg.move((i % _data.levelWidth) << 5, (i / _data.levelWidth) << 5);
-      _eggList.push_back(std::move(egg));
+      _eggList.push_back(new TkEgg((i % _data.levelWidth) << 5,
+                                   (i / _data.levelWidth) << 5));
       continue;
     }
+
     // Populate the map
     if (_data.levelMap[i] != 0xFF) {
-      sf::Sprite sprite(mapTexture, sprites[_data.levelMap[i]]);
-      sprite.move((i % _data.levelWidth) << 5, (i / _data.levelWidth) << 5);
-      mapRender.draw(sprite);
+      forestTiles.setTextureRect(_sprites[_data.levelMap[i]]);
+      forestTiles.setPosition((i % _data.levelWidth) << 5,
+                              (i / _data.levelWidth) << 5);
+      mapRender.draw(forestTiles);
     }
   }
 
   mapRender.display();
-  // get the target texture (where the stuff has been drawn)
   mapSprite.setTexture(mapRender.getTexture());
-  eggSprite.setTexture(eggRender.getTexture());
 
   if (!levelRender.create(_data.levelWidth << 5, _data.levelHeight << 5))
     throw "Can't create map forest renderTexture";
   levelSprite.setTexture(levelRender.getTexture());
+
+  resetPosition();
 }
 
 /**
  * @brief Forest::render
  */
-void Forest::render(void) {
-  eggRender.clear(sf::Color::Transparent);
-  for (uint32_t i = 0U; i < _eggList.size(); ++i) {
-    _eggList[i].nextSprite();
-    eggRender.draw(_eggList[i]);
-  }
-  eggRender.display();
-
+const sf::Drawable& Forest::render() {
   levelRender.clear(sf::Color::Transparent);
   levelRender.draw(mapSprite);
-  levelRender.draw(eggSprite);
+  for (auto egg : _eggList)
+    levelRender.draw(*egg->drawableSprite());
+  levelRender.draw(*_player.drawableSprite());
   levelRender.display();
-}
 
-/**
- * @brief Forest::eggChecker
- * @param position
- */
-void Forest::eggChecker(const sf::FloatRect& position) {
-  for (auto it = _eggList.begin(); it != _eggList.end(); ++it) {
-    sf::FloatRect rect = it->getGlobalBounds();
-    rect.left += levelSprite.getPosition().x;
-    rect.top += levelSprite.getPosition().y;
-    if (rect.intersects(position)) {
-      _eggList.erase(it);
-      mEggSnd.stop();
-      mEggSnd.play();
-      break;
-    }
-  }
+  return levelSprite;
 }
 
 /**
@@ -122,9 +96,8 @@ void Forest::eggChecker(const sf::FloatRect& position) {
  * @param gesture
  * @return
  */
-tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture) {
-  uint32_t position = (((origin.x-levelSprite.getPosition().x) / 32) - 1)
-                    + ((((origin.y-levelSprite.getPosition().y) / 32) - 1) * _data.levelWidth);
+tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture) const {
+  uint32_t position = ((origin.x / 32) - 1) + (((origin.y / 32) - 1) * _data.levelWidth);
 
   if (gesture == tk::gesture::left || gesture == tk::gesture::right) {
     // Check head collision
@@ -164,7 +137,6 @@ tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture) {
   if (gesture == tk::gesture::down) {
     // Check ladder
     position += (_data.levelWidth << 1);
-    std::cout << position << std::endl;
     if (_data.levelMap[position] >= 0x30 && _data.levelMap[position] < 0x36)
       return tk::action::ladderDown;
     if (_data.levelMap[position] == 0xFF) return tk::action::fall;

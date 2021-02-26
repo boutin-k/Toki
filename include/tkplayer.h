@@ -16,7 +16,7 @@ class TkPlayer : public TkEntity {
  public:
   // clang-format off
   enum anim : uint32_t {
-    idle, appear, standFront, standLeft, standRight, standBack, quarterLeft, quarterRight, turnLeft, turnRight, runLeft, runRight,
+    idle, appear, standFront, standLeft, standRight, standBack, quarterLeft, quarterRight, turnLeft, turnRight, runLeft01, runLeft02, runRight01, runRight02,
     jumpUpLeft, jumpUpRight, jumpDownLeft, jumpDownRight, fallFront, fallLeft, fallRight, dizzy, climbUp, climbDown, levelComplete,
     finish };
   // clang-format on
@@ -24,6 +24,7 @@ class TkPlayer : public TkEntity {
   TkPlayer();
 
   inline anim getState() { return _animState; }
+  inline void setState(enum TkPlayer::anim anim) { _animState = anim; }
   inline void setVisible() {
     if (_animState == anim::idle) _animState = anim::appear;
   }

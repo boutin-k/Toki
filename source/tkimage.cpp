@@ -32,7 +32,7 @@ bool TkImage::loadFromFile(const std::string& filename) {
   if (!_texture.loadFromFile(filename))
     return false;
 
-//  mTexture.setSmooth(true);
+  _texture.setSmooth(true);
   setTexture(_texture);
   return true;
 }

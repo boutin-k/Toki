@@ -3,6 +3,8 @@
 
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Window/Keyboard.hpp"
+#include "SFML/Graphics/Text.hpp"
+#include "SFML/Graphics/Font.hpp"
 
 #include "tklevel.h"
 #include "tkimage.h"
@@ -33,6 +35,8 @@ class Game {
 
   TkImage _cursor;
   TkImage _score;
+  sf::Text _text;
+  sf::Font _font;
 };
 
 

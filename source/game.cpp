@@ -3,6 +3,9 @@
 
 #include "SFML/Window/Event.hpp"
 
+#include <string>
+#include <iostream>
+
 #define FRAMERATE 30
 
 static const sf::Time sTimePerFrame = sf::seconds(1.f / FRAMERATE);
@@ -17,6 +20,15 @@ Game::Game(void)
                        {"Media/forest_bg_light.png"},
                        {"Media/bg02.png"},
                        {}} {
+  if (!_font.loadFromFile("Media/Z003.ttf")) {
+    std::cerr << "Could not load font Z003.ttf\n";
+  }  // TODO
+  _text.setFont(_font);
+  _text.setFillColor(sf::Color::White);
+  _text.setStyle(sf::Text::Bold);
+  _text.setCharacterSize(22);
+  _text.setPosition(928.f, 69.f);
+
   // Manage custom cursor
   if (_cursor.loadFromFile("Media/pathcursor.png")) {
     // Hide system cursor
@@ -39,8 +51,12 @@ Game::Game(void)
   _backgroundImage[3].setScale(6.2f, 6.2f);
 
 
-  _level = new Forest(_window.getSize());
-  _level->createLevel("01_ForestFalls.tokilevel");
+  try {
+    _level = new Forest(_window.getSize());
+    _level->createLevel("01_ForestFalls.tokilevel");
+  } catch (char const* e) {
+    std::cerr << e << std::endl;
+  }
 }
 
 Game::~Game(void) {
@@ -133,6 +149,9 @@ void Game::update() {
   // clang-format on
   _level->updateGesture(gesture);
   _level->render();
+  _text.setString(std::to_string(_level->getEggNumber()));
+  _text.setOrigin(_text.getGlobalBounds().width / 2,
+                  _text.getGlobalBounds().height / 2);
 }
 
 /**
@@ -149,5 +168,6 @@ void Game::render() {
   _window.draw(_level->getSprite());
   _window.draw(_score);
   _window.draw(_cursor);
+  _window.draw(_text);
   _window.display();
 }

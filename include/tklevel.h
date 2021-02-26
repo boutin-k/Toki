@@ -77,6 +77,8 @@ class TkLevel
     for (auto egg : _eggList) egg->move(*this);
   }
 
+  inline uint32_t getEggNumber() { return _eggList.size(); }
+
  protected:
   levelData _data;
   sf::Vector2u _windowSize;
@@ -84,16 +86,14 @@ class TkLevel
   sf::RenderTexture mapRender;
   sf::Sprite mapSprite;
 
-//  sf::RenderTexture eggRender;
-//  sf::Texture eggTexture;
-//  sf::Sprite eggSprite;
-
   sf::RenderTexture levelRender;
   sf::Sprite levelSprite;
 
   TkPlayer _player;
+
+  sf::Texture         _eggTexture;
   std::vector<TkEgg*> _eggList;
-  sf::Music _escapeEggSnd;
+  sf::Music           _eggSnd;
 };
 
 #endif // TKLEVEL_H

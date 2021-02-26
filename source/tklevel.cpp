@@ -6,7 +6,7 @@
  */
 TkLevel::TkLevel(const sf::Vector2u& windowSize)
     :_windowSize(windowSize) {
-    if (!_escapeEggSnd.openFromFile("Media/sfx [12].wav"))
+    if (!_eggSnd.openFromFile("Media/sfx [12].wav"))
       std::cerr << "Error. Can't load sound file Media/sfx [12].wav" << std::endl;
 }
 
@@ -63,11 +63,15 @@ void TkLevel::eggChecker(const sf::FloatRect& position) {
       if (rect.intersects(position)) {
         if (!(*it)->isReleased()) {
           (*it)->release();
-          _escapeEggSnd.stop();
-          _escapeEggSnd.play();
+          _eggSnd.stop();
+          _eggSnd.play();
         }
       }
       ++it;
     }
+  }
+
+  if (_eggList.empty()) {
+    _player.setState(TkPlayer::anim::levelComplete);
   }
 }

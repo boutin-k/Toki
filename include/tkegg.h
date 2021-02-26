@@ -12,8 +12,7 @@ class TkEgg : public TkEntity
  public:
   enum anim : uint32_t { idle, wriggle, escape, free };
 
-  TkEgg();
-  TkEgg(float positionX, float positionY);
+  TkEgg(const sf::Texture& fileName, float positionX = 0.f, float positionY = 0.f);
   virtual ~TkEgg();
 
   inline anim getState() { return _animState; }
@@ -40,9 +39,6 @@ class TkEgg : public TkEntity
   std::unordered_map<TkEgg::anim, animMachine> _animMap;
 
   ulong _counter;
-
-  std::array<float, 12UL> _eggEscapeAnim = {-32.f, -10.f, -5.f, -3.f, 0.f, 10.f, 25.f, 25.f, 32.f, 32.f, 50.f, 64.f};
-
 };
 
 #endif // TKEGG_H

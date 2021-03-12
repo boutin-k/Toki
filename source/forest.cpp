@@ -8,7 +8,10 @@
  * @param windowSize
  */
 Forest::Forest(const sf::Vector2u& windowSize)
-    : TkLevel(windowSize) {}
+    : TkLevel(windowSize), bridgeBuilder(bridgeBuilderPath, {0, 0, 64, 32}) {
+  bridgeBuilder.setOrigin(0, 0);
+  bridgeBuilder.resetSprite(0, 3);
+}
 
 Forest::~Forest(void) {}
 
@@ -126,7 +129,8 @@ tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture, bo
 
       // Check staircase down
       position += data.levelWidth;
-      if (data.levelMap[position] < 0x40)
+      if (data.levelMap[position] < 0x40 ||
+          data.levelMap[position+(gesture == tk::gesture::left ? -1:1)] < 0x40)
         return tk::action::jumpDown;
       return tk::action::fall;
     }
@@ -171,4 +175,64 @@ tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture, bo
   }
 
   return tk::action::none;
+}
+
+void Forest::updateGesture(const enum tk::gesture& gesture) {
+  TkLevel::updateGesture(gesture);
+
+  if (bridgeBuilderPtr != nullptr) {
+    if (bridgeBuilder.nextSprite() == bridgeBuilder.getLastSprite()) {
+      levelTiles.setTextureRect(sprites[0x36]);
+      levelTiles.setPosition(bridgeBuilder.getPosition());
+      mapRender.draw(levelTiles);
+      levelTiles.setPosition(bridgeBuilder.getPosition() +
+                             sf::Vector2f{32.f, 0.f});
+      mapRender.draw(levelTiles);
+
+      // Free the bridge builder pointer
+      bridgeBuilderPtr = nullptr;
+    } else {
+      // Until animation sprite is not the last
+      mapRender.draw(bridgeBuilder);
+    }
+  }
+}
+
+/**
+ * @brief Forest::bridgeBuilderHandler
+ * @param origin
+ * @param anim
+ * @param position
+ */
+bool Forest::bridgeBuilderHandler(const sf::Vector2f& origin,
+                                  const tk::gesture& gesture) {
+  uint32_t position =
+      ((uint32_t)std::rint(origin.x) / 32) +
+      (((uint32_t)std::rint(origin.y) / 32 + 1) * data.levelWidth);
+
+  if (gesture == tk::gesture::left || gesture == tk::gesture::right) {
+    for (int i = 0; i < 2; ++i) {
+      int32_t next = (gesture == tk::gesture::left ? -1 : 1);
+
+      position -= (gesture == tk::gesture::left ? 1 : 0);
+      if (data.levelMap[position] == 0xFF &&
+          data.levelMap[position + next] == 0xFF) {
+
+        if (bridgeBuilderPtr == nullptr) {
+          data.levelMap[position] = data.levelMap[position + next] = 0x36;
+          position -= (gesture == tk::gesture::left ? 1 : 0);
+
+          bridgeBuilderPtr = &bridgeBuilder;
+          bridgeBuilder.setPosition((position % data.levelWidth) << 5,
+                                    (position / data.levelWidth) << 5);
+
+          return true;
+        }
+        return false;
+      }
+      position += (gesture == tk::gesture::right ? 1 : 0);
+    }
+  }
+
+  return false;
 }

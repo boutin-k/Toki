@@ -39,8 +39,8 @@ Game::Game(void)
   try {
     level = new Forest(window.getSize());
 //    level->createLevel("maps/ForestFalls/charlie1.tokilevel");
-    level->createLevel("maps/ForestFalls/01_ForestFalls.tokilevel");
-//    level->createLevel("maps/ForestFalls/03_ForestFalls.tokilevel");
+//    level->createLevel("maps/ForestFalls/01_ForestFalls.tokilevel");
+    level->createLevel("maps/ForestFalls/03_ForestFalls.tokilevel");
 //    level->createLevel("maps/ForestFalls/02_ForestFalls.tokilevel");
   } catch (const std::string& e) {
     std::cerr << e << std::endl;
@@ -100,7 +100,7 @@ void Game::processEvents(void) {
         window.close();
         break;
       case sf::Event::MouseButtonPressed:
-        if (level->isIdle()) level->start();
+        level->isIdle() ? level->start() : level->click();
         break;
       default:
         break;

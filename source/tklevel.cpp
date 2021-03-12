@@ -15,6 +15,12 @@ TkLevel::TkLevel(const sf::Vector2u& windowSize)
   if (!eggSnd.loadFromFile("audio/sfx/sfx [12].wav"))
     std::cerr << "Error. Can't load sound file 'audio/sfx/sfx [12].wav'"
               << std::endl;
+  if (!bridgeSoundWin.loadFromFile("audio/sfx/sfx [4].wav"))
+    std::cerr << "Error. Can't load sound file 'audio/sfx/sfx [4].wav'"
+              << std::endl;
+  if (!bridgeSoundFailed.loadFromFile("audio/sfx/sfx [6].wav"))
+    std::cerr << "Error. Can't load sound file 'audio/sfx/sfx [6].wav'"
+              << std::endl;
 }
 
 /**
@@ -301,5 +307,24 @@ void TkLevel::eggChecker(const sf::FloatRect& position) {
 
   if (eggList.empty()) {
     player.setState(TkPlayer::anim::levelComplete);
+  }
+}
+
+void TkLevel::click() {
+  // clang-format off
+  tk::gesture gesture;
+  switch (player.getStandState()) {
+    case TkPlayer::anim::standLeft:  gesture = tk::left;  break;
+    case TkPlayer::anim::standRight: gesture = tk::right; break;
+    default:                         gesture = tk::none;  break;
+  }
+  // clang-format on
+
+  if (bridgeBuilderHandler(player.getPosition(), gesture)) {
+    bridgeSoundWin.stop();
+    bridgeSoundWin.play();
+  } else {
+    bridgeSoundFailed.stop();
+    bridgeSoundFailed.play();
   }
 }

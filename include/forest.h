@@ -13,10 +13,20 @@ class Forest: public TkLevel
   ~Forest();
 
   void buildBoard() override;
-  tk::action isMovable(const sf::Vector2f& origin, tk::gesture, bool recursiveLocked = false) const override;
+  void updateGesture(const enum tk::gesture& gesture) override;
   const sf::Drawable& render() override;
+  tk::action isMovable(const sf::Vector2f& origin, tk::gesture,
+                       bool recursiveLocked = false) const override;
+  bool bridgeBuilderHandler(const sf::Vector2f& origin,
+                            const tk::gesture& gesture) override;
 
  private:
+  TkAnimation bridgeBuilder;
+  TkAnimation* bridgeBuilderPtr{nullptr};
+
+  static constexpr auto bridgeBuilderPath =
+      "textures/sprites/objects/BridgeBuilder_forest.png";
+
   // clang-format off
   sf::IntRect sprites[107]{
     // Line 01

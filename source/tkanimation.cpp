@@ -1,7 +1,11 @@
 #include "tkanimation.h"
 #include "SFML/Graphics/Rect.hpp"
 
-#include <iostream>
+/**
+ * @brief TkAnimation::TkAnimation
+ */
+TkAnimation::TkAnimation() : TkImage() {}
+
 /**
  * @brief TkAnimatedImage::TkAnimatedImage
  * @param filename
@@ -21,6 +25,22 @@ TkAnimation::TkAnimation(const std::string& filename, const sf::IntRect& rectang
 TkAnimation::TkAnimation(const sf::Texture& texture, const sf::IntRect& rectangle)
     : TkImage(texture), currentRect(rectangle) {
   initialize();
+}
+
+/**
+ * @brief TkAnimation::loadFromFile
+ * @param filepath
+ * @param rectangle
+ * @return
+ */
+bool TkAnimation::loadFromFile(const std::string& filepath,
+                               const sf::IntRect& rectangle) {
+  if (TkImage::loadFromFile(filepath)) {
+    currentRect = rectangle;
+    initialize();
+    return true;
+  }
+  return false;
 }
 
 /**

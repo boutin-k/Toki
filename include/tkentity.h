@@ -19,6 +19,7 @@ class TkEntity
 
   inline virtual const sf::Drawable* drawableSprite() const { return entity; }
 
+  inline const sf::Vector2f& getPosition() {return position;}
   inline void setPosition(float x, float y) { setPosition(sf::Vector2f(x, y)); }
   inline void setPosition(const sf::Vector2f& p) {
     position = p;

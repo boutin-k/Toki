@@ -80,6 +80,10 @@ class TkLevel
     move(startPosition - winCenter);
   }
 
+  void click();
+  virtual bool bridgeBuilderHandler(const sf::Vector2f& origin,
+                                    const tk::gesture& gesture) = 0;
+
   bool isLevelFinish{false};
  private:
   void initShoebox(const pugi::xml_document& domDocument);
@@ -105,7 +109,11 @@ class TkLevel
 
   sf::Texture         eggTexture;
   std::vector<TkEgg*> eggList;
-  TkSound             eggSnd;
+  TkSound eggSnd;
+
+//  TkAnimation         bridgeBuilder;
+  TkSound             bridgeSoundWin;
+  TkSound             bridgeSoundFailed;
 
   std::vector<std::unique_ptr<sf::Music*>> musicList;
   uint32_t            musicCounter{0};

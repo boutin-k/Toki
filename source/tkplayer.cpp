@@ -18,9 +18,9 @@ TkPlayer::TkPlayer()
   mClimb( "textures/sprites/toki/climb.png",  { 0, 0, 64, 74 }),
   mDizzy( "textures/sprites/toki/dizzy.png",  { 0, 0, 64, 64 }),
   mIdleA( "textures/sprites/toki/idle.png",   { 0, 0, 64, 64 }),
-  mIdleB( mIdleA.texture,                     { 0, 0, 64, 64 }), // Eternue
-  mIdleC( mIdleA.texture,                     { 0, 0, 84, 64 }), // Jumelle
-  mIdleD( mIdleA.texture,                     { 0, 0, 84, 64 })  // BigToki
+  mIdleB( mIdleA.texture,                     { 0, 0, 64, 64 }),
+  mIdleC( mIdleA.texture,                     { 0, 0, 84, 64 }),
+  mIdleD( mIdleA.texture,                     { 0, 0, 84, 64 })
 {
   entity = &mAppear;
 
@@ -94,7 +94,7 @@ TkPlayer::TkPlayer()
     } },
     { TkPlayer::anim::standLeft, { 0U, 19U, &mStand,
       [this](uint32_t spriteIndex){
-        if (spriteIndex == mStand.getLastSprite()) mDizzyCounter = 0U;
+        if (spriteIndex == mStand.getLastSprite()) dizzyCounter = 0U;
         return sf::Vector2f();
       },
       false, // Transition on last sprite
@@ -107,7 +107,7 @@ TkPlayer::TkPlayer()
     } },
     { TkPlayer::anim::standRight, { 32U, 51U, &mStand,
       [this](uint32_t spriteIndex){
-        if (spriteIndex == mStand.getLastSprite()) mDizzyCounter = 0U;
+        if (spriteIndex == mStand.getLastSprite()) dizzyCounter = 0U;
         return sf::Vector2f();
       },
       false, // Transition on last sprite
@@ -375,24 +375,6 @@ TkPlayer::TkPlayer()
 // clang-format on
 
 /**
- * @brief TkPlayer::setPosition
- * @param positionX
- * @param positionY
- */
-void TkPlayer::setPosition(float positionX, float positionY) {
-  setPosition(sf::Vector2f(positionX, positionY));
-}
-
-/**
- * @brief TkPlayer::setPosition
- * @param position
- */
-void TkPlayer::setPosition(const sf::Vector2f& p) {
-  position = p;
-  if (nullptr != entity) entity->setPosition(position);
-}
-
-/**
  * @brief TkPlayer::move
  * @param level
  * @param gesture
@@ -582,7 +564,7 @@ void TkPlayer::dizzyTransitionHandler() {
   switch (animState) {
     case anim::turnLeft:
     case anim::turnRight: {
-      mDizzyCounter++;
+      dizzyCounter++;
       break;
     }
     case anim::standLeft:
@@ -591,10 +573,10 @@ void TkPlayer::dizzyTransitionHandler() {
       break;
     }
     default: {
-      mDizzyCounter = 0;
+      dizzyCounter = 0;
       break;
     }
   }
   // Enable dizzy sprite if counter is reached
-  if (mDizzyCounter == 6) animState = anim::dizzy;
+  if (dizzyCounter == 6) animState = anim::dizzy;
 }

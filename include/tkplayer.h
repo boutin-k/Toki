@@ -25,9 +25,8 @@ class TkPlayer : public TkEntity {
   inline anim getState() const { return animState; }
   inline void setState(enum TkPlayer::anim anim) { animState = anim; }
   inline void setVisible() { if (animState == anim::none) animState = anim::appear; }
+  inline anim getStandState() { return lastStandState; }
 
-  void setPosition(float positionX, float positionY);
-  void setPosition(const sf::Vector2f& position);
   sf::Vector2f move(TkLevel& level, const enum tk::gesture& gesture = tk::gesture::none) override;
 
  private:
@@ -67,7 +66,7 @@ class TkPlayer : public TkEntity {
   uint32_t idleRange{0U};
   uint32_t idleDelay{0U};
   uint32_t idleCounter{0U};
-  uint32_t mDizzyCounter{0U};
+  uint32_t dizzyCounter{0U};
 };
 
 #endif // TKPLAYER_H

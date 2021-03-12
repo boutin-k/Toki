@@ -22,22 +22,20 @@ class Game {
   void handlePlayerInput(sf::Keyboard::Key key, bool isPressed);
 
  private:
-  sf::RenderWindow _window;
+  sf::RenderWindow window;
 
-  TkImage _backgroundImage[4];
-  TkLevel* _level{nullptr};
+  TkLevel*  level{nullptr};
 
-  bool _movingUp{false};
-  bool _movingDown{false};
-  bool _movingLeft{false};
-  bool _movingRight{false};
-  bool _escape{false};
+  bool      movingUp{false};
+  bool      movingDown{false};
+  bool      movingLeft{false};
+  bool      movingRight{false};
+  bool      escape{false};
 
-  TkImage _cursor;
-  TkImage _score;
-  sf::Text _text;
-  sf::Font _font;
+  TkImage   cursor;
+  TkImage   score;
+  sf::Text  text;
+  sf::Font  font;
 };
-
 
 #endif // GAME_H

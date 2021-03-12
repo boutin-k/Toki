@@ -4,6 +4,7 @@
 #include "tkgesture.h"
 #include "tkplayer.h"
 #include "tkegg.h"
+#include "tksound.h"
 
 #include "SFML/Graphics/RenderTexture.hpp"
 #include "SFML/Graphics/Texture.hpp"
@@ -11,24 +12,42 @@
 #include "SFML/System/Vector2.hpp"
 #include "SFML/Graphics/Rect.hpp"
 
+#include "SFML/Audio/Music.hpp"
+
+#include <memory>
 #include <vector>
 #include <iostream>
+#include <unordered_map>
+#include <list>
+
+namespace pugi {
+  class xml_document;
+}
 
 class TkLevel
 {
+  static constexpr uint32_t tkMagicNumber{0x7F23F5AD};
+  static constexpr uint32_t tkGridMinWidth{30U};
+  static constexpr uint32_t tkGridMaxWidth{100U};
+  static constexpr uint32_t tkGridMinHeight{20U};
+  static constexpr uint32_t tkGridMaxHeight{100U};
+  static constexpr uint32_t tkVersion{3U};
+
+  enum tkAction { bridge, teleport, block, spare, size };
   struct levelData {
-    uint32_t tokiStartX = 0U;
-    uint32_t tokiStartY = 0U;
-    uint32_t levelWidth = 0U;
-    uint32_t levelHeight = 0U;
-    uint8_t* levelMap = nullptr;
+    uint32_t magicNumber           = {0};
+    uint32_t version               = {0};
+    uint32_t levelWidth            = {0};
+    uint32_t levelHeight           = {0};
+    char tilePngFile[128]          = {0};
+    char backXmlFile[128]          = {0};
+    char eggsPngFile[128]          = {0};
+    char musicFile[128]            = {0};
+    uint8_t action[tkAction::size] = {0};
+    uint32_t* levelMap             = {nullptr};
 
     uint32_t getLevelSize() {
       return levelWidth * levelHeight;
-    }
-
-    sf::Vector2f getStartPosition() {
-      return sf::Vector2f{(float)tokiStartX, (float)tokiStartY};
     }
   };
 
@@ -36,64 +55,65 @@ class TkLevel
   TkLevel(const sf::Vector2u& windowSize);
   virtual ~TkLevel();
 
-  virtual void createLevel(const std::string&) = 0;
-  virtual tk::action isMovable(const sf::Vector2f& origin, tk::gesture) const = 0;
+  void createLevel(const std::string& filename);
+
+  virtual void buildBoard() = 0;
+  virtual tk::action isMovable(const sf::Vector2f& origin, tk::gesture, bool recursiveLocked = false) const = 0;
   virtual void move(const sf::Vector2f& offset);
+  virtual void updateGesture(const enum tk::gesture& gesture);
   virtual const sf::Drawable& render() = 0;
 
   void eggChecker(const sf::FloatRect&);
+  inline uint32_t getEggNumber() const { return eggList.size(); }
 
+  inline bool isIdle() const { return (player.getState()==TkPlayer::anim::none); }
+  inline void start() { player.setVisible(); }
 
-  inline bool isIdle() { return (_player.getState()==TkPlayer::anim::idle); }
-  inline void start() { _player.setVisible(); }
-
-  inline sf::Sprite& getSprite() {
-    return levelSprite;
-  }
-
-  inline sf::Vector2f getStartPosition() {
-    return _data.getStartPosition();
-  }
+  inline const sf::Sprite& getSprite() const { return levelSprite; }
+  inline sf::Vector2f getStartPosition() const { return startPosition; }
 
   inline void resetPosition() {
-    _player.setPosition(_data.getStartPosition());
+    player.setPosition(startPosition);
 
     levelSprite.setPosition(0.f, 0.f);
-    sf::Vector2f winCenter{_windowSize.x / 2.f, _windowSize.y / 2.f};
-    move(_data.getStartPosition() - winCenter);
+    sf::Vector2f winCenter{windowSize.x / 2.f, windowSize.y / 2.f};
+    move(startPosition - winCenter);
   }
 
-  inline void updateGesture(const enum tk::gesture& gesture) {
-    sf::Vector2u windowCenter{_windowSize.x>>1, _windowSize.y>>1};
-    sf::Vector2f vec = _player.move(*this, gesture);
-    sf::Vector2f relativePos =
-        _player._entity->getPosition() + levelSprite.getPosition() - vec;
-
-    if ((relativePos.x >= windowCenter.x -16.f && relativePos.x <= windowCenter.x + 16.f) ||
-        (relativePos.y >= windowCenter.y -16.f && relativePos.y <= windowCenter.y + 16.f))
-      move(vec);
-
-    // Update the eggs
-    for (auto egg : _eggList) egg->move(*this);
-  }
-
-  inline uint32_t getEggNumber() { return _eggList.size(); }
+  bool isLevelFinish{false};
+ private:
+  void initShoebox(const pugi::xml_document& domDocument);
+  void initMusic(const pugi::xml_document& domDocument);
+  void updateMusic();
 
  protected:
-  levelData _data;
-  sf::Vector2u _windowSize;
+  levelData           data;
+  sf::Vector2u        windowSize;
+  sf::Vector2f        startPosition;
 
-  sf::RenderTexture mapRender;
-  sf::Sprite mapSprite;
+  sf::RenderTexture   mapRender;
+  sf::Sprite          mapSprite;
 
-  sf::RenderTexture levelRender;
-  sf::Sprite levelSprite;
+  sf::RenderTexture   foregroundRender;
+  sf::Sprite          foregroundSprite;
 
-  TkPlayer _player;
+  TkImage             levelTiles;
+  sf::RenderTexture   levelRender;
+  sf::Sprite          levelSprite;
 
-  sf::Texture         _eggTexture;
-  std::vector<TkEgg*> _eggList;
-  sf::Music           _eggSnd;
+  TkPlayer            player;
+
+  sf::Texture         eggTexture;
+  std::vector<TkEgg*> eggList;
+  TkSound             eggSnd;
+
+  std::vector<std::unique_ptr<sf::Music*>> musicList;
+  uint32_t            musicCounter{0};
+  sf::Music           finishMusic;
+  sf::Music           diesMusic;
+
+  std::unordered_map<std::string, sf::Texture*> shoeboxTextureMap;
+  std::list<std::pair<int32_t, sf::Sprite>>     shoeboxSpriteList;
 };
 
 #endif // TKLEVEL_H

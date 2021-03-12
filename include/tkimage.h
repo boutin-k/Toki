@@ -12,11 +12,11 @@ class TkImage : public sf::Sprite
  public:
   TkImage(void);
   TkImage(const std::string& filepath);
-  TkImage(const sf::Texture& texture);
+  TkImage(const sf::Texture& t);
 
   bool loadFromFile(const std::string& filepath);
 
-  sf::Texture _texture;
+  sf::Texture texture;
 };
 
 #endif // TKIMAGE_H

@@ -1,85 +1,72 @@
 #include "forest.h"
 #include "tkanimation.h"
 
-#include <fstream>
-
-//  std::fstream file;
-//  uint posX = 160U;
-//  uint posY = 416U;
-//  file.open("01_ForestFalls.tokilevel", std::ios::app | std::ios::binary);
-//  file.write(reinterpret_cast<char*>(&posX), sizeof(uint));
-//  file.write(reinterpret_cast<char*>(&posY), sizeof(uint));
-//  file.write(reinterpret_cast<char*>(&data.width), sizeof(uint));
-//  file.write(reinterpret_cast<char*>(&data.height), sizeof(uint));
-//  file.write(reinterpret_cast<char*>(data.board.data()), sizeof(unsigned char) * 880);
+#include <cmath>
 
 /**
  * @brief Forest::Forest
  * @param windowSize
  */
 Forest::Forest(const sf::Vector2u& windowSize)
-    : TkLevel(windowSize) {
-}
+    : TkLevel(windowSize) {}
 
-Forest::~Forest(void) {
-  for (auto egg : _eggList) delete egg;
-  _eggList.clear();
-}
+Forest::~Forest(void) {}
 
 /**
- * @brief Forest::createLevel
- * @param levelName
+ * @brief Forest::buildBoard
  */
-void Forest::createLevel(const std::string& levelName) {
-  // Open the level file
-  std::ifstream file(levelName, std::ios::out | std::ios::binary);
-  if (!file) throw "Cannot open file " + levelName + "\n";
-
-  if (!_eggTexture.loadFromFile("Media/forest_egg.png")) {
-    throw "Cannot open file forest_egg.png\n";
-  }
-
-  file.read((char*)&_data, sizeof(uint32_t) << 2);
-  _data.levelMap = new uint8_t[_data.getLevelSize()];
-  file.read((char*)_data.levelMap, sizeof(uint8_t)*_data.getLevelSize());
-  file.close();
-
-  if (!mapRender.create(_data.levelWidth<<5, _data.levelHeight<<5))
-    throw "Can't create map forest renderTexture";
-  mapRender.clear(sf::Color::Transparent);
-
-  TkImage forestTiles("Media/forest_tiles.png");
-
+void Forest::buildBoard() {
   // Build the board
-  uint32_t size = _data.getLevelSize();
+  uint32_t size = data.getLevelSize();
   for (uint32_t i = 0U; i < size; ++i) {
+    // Find toki start position
+    if ((data.levelMap[i] & 0xFF) == 0xFD) {
+      startPosition.x = (((i + 1) % data.levelWidth) << 5);
+      startPosition.y = (((i + 2) / data.levelWidth) << 5);
+    }
 
     // Populate the egg list
-    if (_data.levelMap[i] == 0xFE) {
-      _eggList.push_back(new TkEgg(_eggTexture,
-                                   (i % _data.levelWidth) << 5,
-                                   (i / _data.levelWidth) << 5));
-      continue;
+    else if ((data.levelMap[i]&0xFF) == 0xFE) {
+      eggList.push_back(new TkEgg(eggTexture,
+                                   ((i+1) % data.levelWidth) << 5,
+                                   ((i+2) / data.levelWidth) << 5));
+      data.levelMap[i] +=1;
+    }
+
+    if ((data.levelMap[i]&0xFF00)) {
+      levelTiles.setTextureRect(sprites[(data.levelMap[i]&0xFF00)>>8]);
+      levelTiles.setPosition((i % data.levelWidth) << 5,
+                              (i / data.levelWidth) << 5);
+      mapRender.draw(levelTiles);
     }
 
     // Populate the map
-    if (_data.levelMap[i] != 0xFF) {
-      forestTiles.setTextureRect(_sprites[_data.levelMap[i]]);
-      forestTiles.setPosition((i % _data.levelWidth) << 5,
-                              (i / _data.levelWidth) << 5);
-      mapRender.draw(forestTiles);
-      continue;
+    if ((data.levelMap[i]&0xFF) != 0xFF) {
+      levelTiles.setTextureRect(sprites[(data.levelMap[i]&0xFF)]);
+      levelTiles.setPosition((i % data.levelWidth) << 5,
+                              (i / data.levelWidth) << 5);
+      mapRender.draw(levelTiles);
     }
+
+    // Populate the map
+    if ((data.levelMap[i]&0xFF0000)) {
+      levelTiles.setTextureRect(sprites[(data.levelMap[i]&0xFF0000)>>16]);
+      levelTiles.setPosition((i % data.levelWidth) << 5,
+                              (i / data.levelWidth) << 5);
+      foregroundRender.draw(levelTiles);
+    }
+    data.levelMap[i] &= 0xFF;
   }
 
   mapRender.display();
   mapSprite.setTexture(mapRender.getTexture());
 
-  if (!levelRender.create(_data.levelWidth << 5, _data.levelHeight << 5))
+  foregroundRender.display();
+  foregroundSprite.setTexture(foregroundRender.getTexture());
+
+  if (!levelRender.create(data.levelWidth << 5, data.levelHeight << 5))
     throw "Can't create map forest renderTexture";
   levelSprite.setTexture(levelRender.getTexture());
-
-  resetPosition();
 }
 
 /**
@@ -89,9 +76,10 @@ void Forest::createLevel(const std::string& levelName) {
 const sf::Drawable& Forest::render() {
   levelRender.clear(sf::Color::Transparent);
   levelRender.draw(mapSprite);
-  for (auto egg : _eggList)
+  for (auto egg : eggList)
     levelRender.draw(*egg->drawableSprite());
-  levelRender.draw(*_player.drawableSprite());
+  levelRender.draw(*player.drawableSprite());
+  levelRender.draw(foregroundSprite);
   levelRender.display();
 
   return levelSprite;
@@ -103,9 +91,10 @@ const sf::Drawable& Forest::render() {
  * @param gesture The user keyboard action
  * @return The authorized movement related to the gesture and the map
  */
-tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture) const {
+tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture, bool recursiveLocked) const {
   uint32_t position =
-      ((origin.x / 32) - 1) + (((origin.y / 32) - 1) * _data.levelWidth);
+      ((uint32_t)std::rint(origin.x) / 32 - 1) +
+      (((uint32_t)std::rint(origin.y) / 32 - 1) * data.levelWidth);
 
   switch (gesture) {
     case tk::gesture::left:
@@ -113,42 +102,44 @@ tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture) co
 
       // Check head collision
       position += (gesture == tk::gesture::left) ? -1 : 2;
-      if (_data.levelMap[position] < 0x30 ||
-          _data.levelMap[position] == 0x36)
+      if (data.levelMap[position] < 0x3A)
         return tk::action::none;
 
       // Check staircase up
-      position += _data.levelWidth;
-      if (_data.levelMap[position] < 0x30 ||
-          _data.levelMap[position] == 0x36) {
-        position -= (_data.levelWidth << 1);
-        if (_data.levelMap[position] < 0x30 ||
-            _data.levelMap[position] == 0x36)
+      position += data.levelWidth;
+      if (data.levelMap[position] < 0x3A) {
+        position -= (data.levelWidth << 1);
+        if (data.levelMap[position] < 0x3A)
           return tk::action::none;
         return tk::action::jumpUp;
       }
 
       // Check run
-      position += _data.levelWidth + (gesture == tk::gesture::left ? 1 : -1);
-      if (_data.levelMap[position] <= 0x36)
-        return tk::action::run;
+      position += data.levelWidth + (gesture == tk::gesture::left ? 1 : -1);
+      if (data.levelMap[position] < 0x40) return tk::action::run;
+
+      if (recursiveLocked == false) {
+        sf::Vector2f tmp{(gesture == tk::gesture::left ? -32.f : 32.f), 0};
+        if (isMovable(origin + tmp, gesture, true) == tk::action::run)
+          return tk::action::run;
+      }
 
       // Check staircase down
-      position += _data.levelWidth;
-      if (_data.levelMap[position] <= 0x36)
+      position += data.levelWidth;
+      if (data.levelMap[position] < 0x40)
         return tk::action::jumpDown;
       return tk::action::fall;
     }
 
     case tk::gesture::up: {
       // Check ladder
-      position += _data.levelWidth;
-      if (_data.levelMap[position] == 0x30 ||
-          _data.levelMap[position] == 0x32 ||
-          _data.levelMap[position] == 0x34) {
-        position -= (_data.levelWidth << 1);
-        if (_data.levelMap[position] < 0x30 ||
-            _data.levelMap[position] == 0x36)
+      position += data.levelWidth;
+      if (data.levelMap[position] == 0x3A ||
+          data.levelMap[position] == 0x3C ||
+          data.levelMap[position] == 0x3E) {
+        position -= (data.levelWidth << 1);
+        if (data.levelMap[position] < 0x3A ||
+            data.levelMap[position+1] < 0x3A)
           return tk::action::none;
         return tk::action::ladderUp;
       }
@@ -157,14 +148,23 @@ tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture) co
 
     case tk::gesture::down: {
       // Check ladder
-      position += (_data.levelWidth << 1);
-      if (_data.levelMap[position] == 0x30 ||
-          _data.levelMap[position] == 0x32 ||
-          _data.levelMap[position] == 0x34)
+      position += (data.levelWidth << 1);
+      if (data.levelMap[position] == 0x3A ||
+          data.levelMap[position] == 0x3C ||
+          data.levelMap[position] == 0x3E)
         return tk::action::ladderDown;
-      if (_data.levelMap[position] == 0xFF)
+      if (data.levelMap[position] == 0xFF &&
+          data.levelMap[position+1] == 0xFF)
         return tk::action::fall;
       return tk::action::none;
+    }
+
+    case tk::gesture::none: {
+      // Check empty
+      position += (data.levelWidth << 1);
+      if (data.levelMap[position] == 0xFF &&
+          data.levelMap[position+1] == 0xFF)
+        return tk::action::fall;
     }
     default:
       break;

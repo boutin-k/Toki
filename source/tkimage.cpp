@@ -11,7 +11,7 @@ TkImage::TkImage() : sf::Sprite() {}
  * @brief TkImage::TkImage
  * @param texture
  */
-TkImage::TkImage(const sf::Texture& texture) : sf::Sprite(texture) {
+TkImage::TkImage(const sf::Texture& t) : sf::Sprite(t) {
 }
 
 /**
@@ -29,10 +29,10 @@ TkImage::TkImage(const std::string& filename) {
  * @return
  */
 bool TkImage::loadFromFile(const std::string& filename) {
-  if (!_texture.loadFromFile(filename))
+  if (!texture.loadFromFile(filename))
     return false;
 
-  _texture.setSmooth(true);
-  setTexture(_texture);
+  texture.setSmooth(true);
+  setTexture(texture);
   return true;
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<audio root="audio/music/forestfalls/" >
+  <music filename="ff_intro2.ogg" />
+  <music filename="ff_block1a.ogg" />
+  <music filename="ff_block1c.ogg" />
+  <music filename="ff_block5c.ogg" />
+  <music filename="ff_block3.ogg" />
+  <music filename="ff_block1b.ogg" />
+  <music filename="ff_block4a.ogg" />
+  <music filename="ff_block2a.ogg" />
+  <music filename="ff_block4b.ogg" />
+  <music filename="ff_block2c.ogg" />
+  <music filename="ff_break3.ogg" />
+  <music filename="ff_break2.ogg" />
+  <music filename="ff_break1.ogg" />
+</audio>

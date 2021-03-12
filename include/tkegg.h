@@ -15,30 +15,26 @@ class TkEgg : public TkEntity
   TkEgg(const sf::Texture& fileName, float positionX = 0.f, float positionY = 0.f);
   virtual ~TkEgg();
 
-  inline anim getState() { return _animState; }
-
-  inline bool isReleased() {
-    return (_animState == escape || _animState == free);
-  }
+  inline anim getState() const { return animState; }
+  inline bool isReleased() const { return (animState == escape || animState == free); }
 
   inline void release() {
-    if (_animState != anim::escape && _animState != anim::free)
-      _animState = anim::escape;
-    _counter = 0UL;
+    if (animState != anim::escape && animState != anim::free)
+      animState = anim::escape;
+    counter = 0UL;
   }
-
 
   sf::Vector2f move(TkLevel& level,
                     const enum tk::gesture& gesture = tk::gesture::none) override;
 
  private:
-  enum anim _animState = anim::wriggle;
-  enum anim _lastAnimState = anim::idle;
+  enum anim animState     = anim::wriggle;
+  enum anim lastAnimState = anim::idle;
 
-  TkAnimation _eggAnim;
-  std::unordered_map<TkEgg::anim, animMachine> _animMap;
+  TkAnimation                                  eggAnim;
+  std::unordered_map<TkEgg::anim, animMachine> animMap;
 
-  ulong _counter;
+  ulong counter;
 };
 
 #endif // TKEGG_H

@@ -12,41 +12,41 @@ static constexpr std::array<float, 12UL> _eggEscapeAnim =
  * @param positionY Y position of the egg on the map
  */
 TkEgg::TkEgg(const sf::Texture& texture, float positionX, float positionY)
-    : _eggAnim(texture/*"Media/forest_egg.png"*/, { 0, 0, 64, 64 })
+    : eggAnim(texture, { 0, 0, 64, 64 })
 {
   // clang-format off
-  _animMap = {
-    { TkEgg::anim::idle,    { 0U, 10U, &_eggAnim,
+  animMap = {
+    { TkEgg::anim::idle,    { 0U, 10U, &eggAnim,
       [this](uint32_t spriteIndex){
-        if (spriteIndex == _eggAnim.getLastSprite() && !--_counter)
-          _animState = TkEgg::anim::wriggle;
+        if (spriteIndex == eggAnim.getLastSprite() && !--counter)
+          animState = TkEgg::anim::wriggle;
         return sf::Vector2f{};
       },
       true, { }, { } } },
-    { TkEgg::anim::wriggle, { 0U, 39U, &_eggAnim,
+    { TkEgg::anim::wriggle, { 0U, 39U, &eggAnim,
       [this](uint32_t spriteIndex){
-        if (spriteIndex == _eggAnim.getLastSprite())
-          _counter = rand() % 50 + 20;
+        if (spriteIndex == eggAnim.getLastSprite())
+          counter = rand() % 50 + 20;
         return sf::Vector2f{};
       },
       true, // Transition on last sprite
       { {tk::gesture::none, anim::idle} },
       { } } },
-    { TkEgg::anim::escape,  { 40U, 40U, &_eggAnim,
+    { TkEgg::anim::escape,  { 40U, 40U, &eggAnim,
       [this](uint32_t spriteIndex){
-        if (spriteIndex == _eggAnim.getLastSprite()) {
-          _entity->move(0.f, _eggEscapeAnim[_counter++]);
-          _entity->rotate(10.f);
+        if (spriteIndex == eggAnim.getLastSprite()) {
+          entity->move(0.f, _eggEscapeAnim[counter++]);
+          entity->rotate(10.f);
 
-          if (_counter == _eggEscapeAnim.size())
-            _animState = TkEgg::anim::free;
+          if (counter == _eggEscapeAnim.size())
+            animState = TkEgg::anim::free;
         }
         return sf::Vector2f{};
       },
       true, { }, { } } },
   };
   // clang-format on
-  _entity = &_eggAnim;
+  entity = &eggAnim;
   setPosition(positionX, positionY);
 }
 
@@ -74,24 +74,24 @@ sf::Vector2f TkEgg::move(TkLevel& /*level*/,
                          const enum tk::gesture& gesture) {
   sf::Vector2f offset(0.f, 0.f);
 
-  auto currentState = _animMap.find(_animState);
-  if (currentState != _animMap.end()) {
+  auto currentState = animMap.find(animState);
+  if (currentState != animMap.end()) {
     animMachine sm = currentState->second;
 
-    if (_animState != _lastAnimState) {
-      _entity = sm.image;
-      _entity->resetSprite(sm.spriteBegin, sm.spriteEnd);
-      _entity->setPosition(_position);
+    if (animState != lastAnimState) {
+      entity = sm.image;
+      entity->resetSprite(sm.spriteBegin, sm.spriteEnd);
+      entity->setPosition(position);
       // Update last animation state
-      _lastAnimState = _animState;
+      lastAnimState = animState;
     }
-    uint currentId = _entity->nextSprite();
+    uint currentId = entity->nextSprite();
     if (sm.func) offset += sm.func(currentId);
 
     if (!sm.transitionOnLast || currentId == sm.spriteEnd) {
       for (auto pair : sm.transition) {
         if ((pair.first & gesture) == pair.first) {
-          _animState = static_cast<anim>(pair.second);
+          animState = static_cast<anim>(pair.second);
           break;
         }
       }

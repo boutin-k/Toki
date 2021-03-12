@@ -1,6 +1,7 @@
 #include "tkanimation.h"
 #include "SFML/Graphics/Rect.hpp"
 
+#include <iostream>
 /**
  * @brief TkAnimatedImage::TkAnimatedImage
  * @param filename
@@ -8,11 +9,8 @@
  * @param nbSprite
  */
 TkAnimation::TkAnimation(const std::string& filename, const sf::IntRect& rectangle)
-    : TkImage(filename), _currentRect(rectangle) {
-  _spritePerLine = static_cast<unsigned int>(getLocalBounds().width) / rectangle.width;
-
-  setTextureRect(rectangle);
-  setOrigin((rectangle.width>>1) + rectangle.left, (rectangle.height>>1) + rectangle.top);
+    : TkImage(filename), currentRect(rectangle) {
+  initialize();
 }
 
 /**
@@ -21,11 +19,18 @@ TkAnimation::TkAnimation(const std::string& filename, const sf::IntRect& rectang
  * @param rectangle
  */
 TkAnimation::TkAnimation(const sf::Texture& texture, const sf::IntRect& rectangle)
-    : TkImage(texture), _currentRect(rectangle) {
-  _spritePerLine = static_cast<unsigned int>(getLocalBounds().width) / rectangle.width;
+    : TkImage(texture), currentRect(rectangle) {
+  initialize();
+}
 
-  setTextureRect(rectangle);
-  setOrigin((rectangle.width>>1) + rectangle.left, (rectangle.height>>1) + rectangle.top);
+/**
+ * @brief TkAnimation::initialize
+ */
+void TkAnimation::initialize() {
+  spritePerLine = static_cast<unsigned int>(getLocalBounds().width) / currentRect.width;
+
+  setTextureRect(currentRect);
+  setOrigin((currentRect.width>>1) + currentRect.left, (currentRect.height>>1) + currentRect.top);
 }
 
 /**
@@ -34,16 +39,33 @@ TkAnimation::TkAnimation(const sf::Texture& texture, const sf::IntRect& rectangl
  */
 uint TkAnimation::nextSprite(void) {
   // Loop
-  if (_currentSprite > _lastSprite) {
-    _currentSprite = _firstSprite;
+  if ((uint)currentSprite > lastSprite) {
+    currentSprite = firstSprite;
   }
 
   // left, top, width, height
   sf::IntRect rectangle(
-      _currentRect.width * (_currentSprite % _spritePerLine),
-      _currentRect.width * (_currentSprite / _spritePerLine),
-      _currentRect.width, _currentRect.height);
+      currentRect.width * ((uint)currentSprite % spritePerLine),
+      currentRect.height * ((uint)currentSprite / spritePerLine),
+      currentRect.width, currentRect.height);
   setTextureRect(rectangle);
 
-  return(_currentSprite++);
+  uint retVal = currentSprite;
+
+  if (reverse && reverseInProgress) {
+    animationFinished = ((currentSprite -= speed) < firstSprite);
+    if (animationFinished) {
+      reverseInProgress = false;
+      currentSprite += speed * 2;
+    }
+  } else {
+    if (reverse && currentSprite + speed > lastSprite) {
+      reverseInProgress = true;
+      currentSprite -= speed;
+    } else {
+      animationFinished = ((currentSprite += speed) > lastSprite);
+    }
+  }
+
+  return (retVal);
 }

@@ -31,11 +31,10 @@ class TkPlayer : public TkEntity {
   sf::Vector2f move(TkLevel& level, const enum tk::gesture& gesture = tk::gesture::none) override;
 
  private:
-  void transitionHandler(const TkLevel& level, const TkPlayer::anim& currentAnimState);
-
   void updateIdleState(bool reset = false);
-  void manageIdleState();
-  void manageDizzyState();
+  void idleTransitionHandler();
+  void dizzyTransitionHandler();
+  void transitionHandler(const TkLevel& level, const TkPlayer::anim& currentAnimState);
 
 
   enum anim animState { anim::none };

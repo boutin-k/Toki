@@ -412,8 +412,6 @@ sf::Vector2f TkPlayer::move(TkLevel& level, const enum tk::gesture& gesture) {
       entity->setPosition(position);
       // Update last animation state
       lastAnimState = animState;
-
-      manageDizzyState();
     }
     uint currentId = entity->nextSprite();
     if (sm.func) offset += sm.func(currentId);
@@ -529,7 +527,8 @@ void TkPlayer::transitionHandler(const TkLevel& level,
   }
   // clang-format on
 
-  manageIdleState();
+  idleTransitionHandler();
+  dizzyTransitionHandler();
 }
 
 /**
@@ -542,9 +541,9 @@ void TkPlayer::updateIdleState(bool reset) {
 }
 
 /**
- * @brief TkPlayer::manageIdleState
+ * @brief TkPlayer::idleTransitionHandler
  */
-void TkPlayer::manageIdleState() {
+void TkPlayer::idleTransitionHandler() {
   // Update idle counter
   switch (animState) {
     case anim::standLeft:
@@ -577,9 +576,9 @@ void TkPlayer::manageIdleState() {
 }
 
 /**
- * @brief TkPlayer::manageDizzyState
+ * @brief TkPlayer::dizzyTransitionHandler
  */
-void TkPlayer::manageDizzyState() {
+void TkPlayer::dizzyTransitionHandler() {
   switch (animState) {
     case anim::turnLeft:
     case anim::turnRight: {

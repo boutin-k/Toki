@@ -11,7 +11,8 @@ static constexpr auto tkDefaultVolume = 25.f;
  * @param windowSize
  */
 TkLevel::TkLevel(const sf::Vector2u& windowSize)
-    :windowSize(windowSize) {
+    : view(static_cast<sf::Vector2f>(windowSize / 2U), static_cast<sf::Vector2f>(windowSize)),
+      windowSize(windowSize) {
   if (!eggSnd.loadFromFile("audio/sfx/sfx [12].wav"))
     std::cerr << "Error. Can't load sound file 'audio/sfx/sfx [12].wav'"
               << std::endl;
@@ -201,27 +202,26 @@ void TkLevel::initShoebox(const pugi::xml_document& domDocument) {
  * @return
  */
 void TkLevel::move(const sf::Vector2f& offset) {
-  static const sf::Vector2u limits =
-      sf::Vector2u{data.levelWidth << 5, data.levelHeight << 5} -
-      windowSize;
+  static const sf::Vector2u minLimit = windowSize / 2U;
+  static const sf::Vector2u maxLimit =
+      sf::Vector2u{data.levelWidth << 5, data.levelHeight << 5} - minLimit;
 
   if (offset.x != 0.f || offset.y != 0.f) {
-    levelSprite.move(-offset);
+    sf::Vector2f center = view.getCenter() + offset;
 
-    sf::Vector2f finalPos = levelSprite.getPosition();
-    if (finalPos.x > 0.f) {
-      finalPos.x = 0.f;
-    } else if (std::abs(finalPos.x) > limits.x) {
-      finalPos.x = static_cast<int>(-limits.x);
+    if (center.x < minLimit.x) {
+      center.x = minLimit.x;
+    } else if (center.x > maxLimit.x) {
+      center.x = maxLimit.x;
     }
 
-    if (finalPos.y > 0.f) {
-      finalPos.y = 0.f;
-    } else if (std::abs(finalPos.y) > limits.y) {
-      finalPos.y = static_cast<int>(-limits.y);
+    if (center.y < minLimit.y) {
+      center.y = minLimit.y;
+    } else if (center.y > maxLimit.y) {
+      center.y = maxLimit.y;
     }
 
-    levelSprite.setPosition(finalPos);
+    view.setCenter(center);
   }
 }
 
@@ -229,22 +229,18 @@ void TkLevel::move(const sf::Vector2f& offset) {
  * @brief TkLevel::updateGesture
  * @param gesture
  */
-void TkLevel::updateGesture(const enum tk::gesture& gesture) {
+void TkLevel::update(const enum tk::gesture& gesture) {
   static const uint32_t margin{16U};
-  static const uint32_t centerBox[4]{
-      (windowSize.x>>1) - margin, (windowSize.x>>1) + margin, // left, right
-      (windowSize.y>>1) - margin, (windowSize.y>>1) + margin  // top, bottom
-  };
 
   sf::Vector2f offset = player.move(*this, gesture);
-  sf::Vector2f relativePos =
-      player.entity->getPosition() + levelSprite.getPosition();
+  sf::Vector2f playerPos = player.entity->getPosition();
+  sf::Vector2f viewCenter = view.getCenter();
 
-  if ((offset.x > 0.f && relativePos.x < centerBox[0]) ||
-      (offset.x < 0.f && relativePos.x > centerBox[1]))
+  if ((offset.x > 0.f && playerPos.x < viewCenter.x - margin) ||
+      (offset.x < 0.f && playerPos.x > viewCenter.x + margin))
     offset.x = 0.f;
-  if ((offset.y > 0.f && relativePos.y < centerBox[2]) ||
-      (offset.y < 0.f && relativePos.y > centerBox[3]))
+  if ((offset.y > 0.f && playerPos.y < viewCenter.y - margin) ||
+      (offset.y < 0.f && playerPos.y > viewCenter.y + margin))
     offset.y = 0.f;
 
   if (offset.x != 0.f || offset.y != 0.f) move(offset);

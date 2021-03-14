@@ -13,8 +13,8 @@ class Forest: public TkLevel
   ~Forest();
 
   void buildBoard() override;
-  void updateGesture(const enum tk::gesture& gesture) override;
-  const sf::Drawable& render() override;
+  void update(const enum tk::gesture& gesture) override;
+  void render(sf::RenderWindow& window) override;
   tk::action isMovable(const sf::Vector2f& origin, tk::gesture,
                        bool recursiveLocked = false) const override;
   bool bridgeBuilderHandler(const sf::Vector2f& origin,

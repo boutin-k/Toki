@@ -64,6 +64,9 @@ void Game::run(void) {
   while (window.isOpen()) {
     if (level->isLevelFinish) {
       delete level;
+      // Restore the default viewport
+      window.setView(window.getDefaultView());
+      // Launch the new level
       level = new Forest(window.getSize());
       level->createLevel("maps/ForestFalls/charlie1.tokilevel");
 
@@ -140,8 +143,7 @@ void Game::update() {
       (movingDown)   ? tk::gesture::down  :
                         tk::gesture::none;
   // clang-format on
-  level->updateGesture(gesture);
-  level->render();
+  level->update(gesture);
   text.setString(std::to_string(level->getEggNumber()));
   text.setOrigin(text.getGlobalBounds().width / 2,
                   text.getGlobalBounds().height / 2);
@@ -152,7 +154,7 @@ void Game::update() {
  */
 void Game::render() {
   window.clear(sf::Color(255, 255, 255, 255));
-  window.draw(level->getSprite());
+  level->render(window);
   window.draw(score);
   window.draw(cursor);
   window.draw(text);

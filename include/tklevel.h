@@ -6,6 +6,7 @@
 #include "tkegg.h"
 #include "tksound.h"
 
+#include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Graphics/RenderTexture.hpp"
 #include "SFML/Graphics/Texture.hpp"
 #include "SFML/Graphics/Sprite.hpp"
@@ -60,8 +61,8 @@ class TkLevel
   virtual void buildBoard() = 0;
   virtual tk::action isMovable(const sf::Vector2f& origin, tk::gesture, bool recursiveLocked = false) const = 0;
   virtual void move(const sf::Vector2f& offset);
-  virtual void updateGesture(const enum tk::gesture& gesture);
-  virtual const sf::Drawable& render() = 0;
+  virtual void update(const enum tk::gesture& gesture);
+  virtual void render(sf::RenderWindow& window) = 0;
 
   void eggChecker(const sf::FloatRect&);
   inline uint32_t getEggNumber() const { return eggList.size(); }
@@ -69,13 +70,11 @@ class TkLevel
   inline bool isIdle() const { return (player.getState()==TkPlayer::anim::none); }
   inline void start() { player.setVisible(); }
 
-  inline const sf::Sprite& getSprite() const { return levelSprite; }
   inline sf::Vector2f getStartPosition() const { return startPosition; }
 
   inline void resetPosition() {
     player.setPosition(startPosition);
 
-    levelSprite.setPosition(0.f, 0.f);
     sf::Vector2f winCenter{windowSize.x / 2.f, windowSize.y / 2.f};
     move(startPosition - winCenter);
   }
@@ -92,26 +91,24 @@ class TkLevel
 
  protected:
   levelData           data;
+
+  sf::View            view;
   sf::Vector2u        windowSize;
   sf::Vector2f        startPosition;
 
   sf::RenderTexture   mapRender;
   sf::Sprite          mapSprite;
-
   sf::RenderTexture   foregroundRender;
   sf::Sprite          foregroundSprite;
 
   TkImage             levelTiles;
-  sf::RenderTexture   levelRender;
-  sf::Sprite          levelSprite;
 
   TkPlayer            player;
 
   sf::Texture         eggTexture;
   std::vector<TkEgg*> eggList;
-  TkSound eggSnd;
+  TkSound             eggSnd;
 
-//  TkAnimation         bridgeBuilder;
   TkSound             bridgeSoundWin;
   TkSound             bridgeSoundFailed;
 

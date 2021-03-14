@@ -66,26 +66,23 @@ void Forest::buildBoard() {
 
   foregroundRender.display();
   foregroundSprite.setTexture(foregroundRender.getTexture());
-
-  if (!levelRender.create(data.levelWidth << 5, data.levelHeight << 5))
-    throw "Can't create map forest renderTexture";
-  levelSprite.setTexture(levelRender.getTexture());
 }
 
 /**
  * @brief render Render all the forest map textures in a sprite
- * @return The final sprite
  */
-const sf::Drawable& Forest::render() {
-  levelRender.clear(sf::Color::Transparent);
-  levelRender.draw(mapSprite);
-  for (auto egg : eggList)
-    levelRender.draw(*egg->drawableSprite());
-  levelRender.draw(*player.drawableSprite());
-  levelRender.draw(foregroundSprite);
-  levelRender.display();
-
-  return levelSprite;
+void Forest::render(sf::RenderWindow& window) {
+  // push
+  window.setView(view);
+  {
+    window.clear(sf::Color::Transparent);
+    window.draw(mapSprite);
+    for (auto egg : eggList) window.draw(*egg->drawableSprite());
+    window.draw(*player.drawableSprite());
+    window.draw(foregroundSprite);
+  }
+  // pop
+  window.setView(window.getDefaultView());
 }
 
 /**
@@ -177,8 +174,12 @@ tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture, bo
   return tk::action::none;
 }
 
-void Forest::updateGesture(const enum tk::gesture& gesture) {
-  TkLevel::updateGesture(gesture);
+/**
+ * @brief Forest::update
+ * @param gesture
+ */
+void Forest::update(const enum tk::gesture& gesture) {
+  TkLevel::update(gesture);
 
   if (bridgeBuilderPtr != nullptr) {
     if (bridgeBuilder.nextSprite() == bridgeBuilder.getLastSprite()) {

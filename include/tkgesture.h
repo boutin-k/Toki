@@ -10,8 +10,7 @@ namespace tk {
     left  = 1 << 0,
     right = 1 << 1,
     up    = 1 << 2,
-    down  = 1 << 3,
-    back  = 1 << 4
+    down  = 1 << 3
   };
 
   enum class action : uint {

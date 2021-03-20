@@ -50,7 +50,9 @@ void TkAnimation::initialize() {
   spritePerLine = static_cast<unsigned int>(getLocalBounds().width) / currentRect.width;
 
   setTextureRect(currentRect);
-  setOrigin((currentRect.width>>1) + currentRect.left, (currentRect.height>>1) + currentRect.top);
+    setOrigin(currentRect.width>>1, currentRect.height>>1);
+  //  setOrigin((currentRect.width>>1) + currentRect.left,
+  //  (currentRect.height>>1) + currentRect.top);
 }
 
 /**
@@ -88,4 +90,47 @@ uint TkAnimation::nextSprite(void) {
   }
 
   return (retVal);
+}
+
+/**
+ * @brief TkAnimation::setTkOrigin
+ * @param origin
+ */
+void TkAnimation::setTkOrigin(const TkOrigin& origin) {
+  float x = 0.f;
+  float y = 0.f;
+
+  // Horizontality
+  switch (origin) {
+    case topRight:
+    case centerRight:
+    case bottomRight:
+      x = currentRect.width;
+      break;
+    case center:
+    case topCenter:
+    case bottomCenter:
+      x = currentRect.width >> 1;
+      break;
+    default:
+      break;
+  }
+
+  // Verticality
+  switch (origin) {
+    case bottomRight:
+    case bottomLeft:
+    case bottomCenter:
+      y = currentRect.height;
+      break;
+    case centerRight:
+    case centerLeft:
+    case center:
+      y = currentRect.height >> 1;
+      break;
+    default:
+      break;
+  }
+
+  setOrigin(x, y);
 }

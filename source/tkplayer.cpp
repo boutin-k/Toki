@@ -20,7 +20,14 @@ TkPlayer::TkPlayer()
   mIdleA( "textures/sprites/toki/idle.png",   { 0, 0, 64, 64 }),
   mIdleB( mIdleA.texture,                     { 0, 0, 64, 64 }),
   mIdleC( mIdleA.texture,                     { 0, 0, 84, 64 }),
-  mIdleD( mIdleA.texture,                     { 0, 0, 84, 64 })
+  mIdleD( mIdleA.texture,                     { 0, 0, 84, 64 }),
+  mTeleportLookLeft("textures/sprites/toki/teleportlookleft.png", { 0, 0, 84, 64 }),
+  mTeleportLookRight("textures/sprites/toki/teleportlookright.png", { 0, 0, 84, 64 }),
+  mTeleportLookUp("textures/sprites/toki/teleportlookup.png", { 0, 0, 84, 64 }),
+  mTeleportLookDown("textures/sprites/toki/teleportlookdown.png", { 0, 0, 84, 64 }),
+  mTeleportLookFront("textures/sprites/toki/teleportlookfront.png", { 0, 0, 84, 64 }),
+  mTeleportBeamIn("textures/sprites/toki/teleportbeamin.png", { 0, 0, 84, 64 }),
+  mTeleportBeamOut("textures/sprites/toki/teleportbeamout.png", { 0, 0, 84, 64 })
 {
   entity = &mAppear;
 
@@ -51,8 +58,7 @@ TkPlayer::TkPlayer()
     } },
     { TkPlayer::anim::standFront, { 64U, 83U, &mStand, nullptr,
       false, // Transition on last sprite
-      { {tk::gesture::back,  anim::levelComplete},
-        {tk::gesture::left,  anim::quarterFrontLeft  },
+      { {tk::gesture::left,  anim::quarterFrontLeft  },
         {tk::gesture::right, anim::quarterFrontRight } },
       {} // Movement Sound
     } },
@@ -98,8 +104,7 @@ TkPlayer::TkPlayer()
         return sf::Vector2f();
       },
       false, // Transition on last sprite
-      { {tk::gesture::back, anim::levelComplete },
-        {tk::gesture::left, anim::runLeft01     },
+      { {tk::gesture::left, anim::runLeft01     },
         {tk::gesture::right, anim::turnRight    },
         {tk::gesture::up, anim::climbUp         },
         {tk::gesture::down, anim::climbDown     } },
@@ -111,8 +116,7 @@ TkPlayer::TkPlayer()
         return sf::Vector2f();
       },
       false, // Transition on last sprite
-      { {tk::gesture::back, anim::levelComplete },
-        {tk::gesture::left, anim::turnLeft      },
+      { {tk::gesture::left, anim::turnLeft      },
         {tk::gesture::right, anim::runRight01   },
         {tk::gesture::up, anim::climbUp         },
         {tk::gesture::down, anim::climbDown     } },
@@ -270,98 +274,133 @@ TkPlayer::TkPlayer()
     { TkPlayer::anim::idle1, { 0U, 2U, &mIdleA,
       [this](uint32_t /*spriteIndex*/){
         if (mIdleA.isAnimationFinished()) {
-          animState = (lastStandState == anim::standLeft)  ? anim::quarterFrontLeft  :
-                      (lastStandState == anim::standRight) ? anim::quarterFrontRight :
-                                                             lastStandState;
+          animState = (lastStand == anim::standLeft)  ? anim::quarterFrontLeft  :
+                      (lastStand == anim::standRight) ? anim::quarterFrontRight :
+                                                             lastStand;
           idleState = anim::none;
         }
         return sf::Vector2f();
       },
-      true, { }, { }
+      false, { }, { }
     } },
     { TkPlayer::anim::idle2, { 16U, 20U, &mIdleA,
       [this](uint32_t /*spriteIndex*/){
         if (mIdleA.isAnimationFinished()) {
-          animState = (lastStandState == anim::standLeft)  ? anim::quarterFrontLeft  :
-                      (lastStandState == anim::standRight) ? anim::quarterFrontRight :
-                                                             lastStandState;
+          animState = (lastStand == anim::standLeft)  ? anim::quarterFrontLeft  :
+                      (lastStand == anim::standRight) ? anim::quarterFrontRight :
+                                                             lastStand;
           idleState = anim::none;
         }
         return sf::Vector2f();
       },
-      true, { }, { }
+      false, { }, { }
     } },
     { TkPlayer::anim::idle3, { 4U, 12U, &mIdleA,
       [this](uint32_t /*spriteIndex*/){
         if (mIdleA.isAnimationFinished()) {
-          animState = (lastStandState == anim::standLeft)  ? anim::quarterFrontLeft  :
-                      (lastStandState == anim::standRight) ? anim::quarterFrontRight :
-                                                             lastStandState;
+          animState = (lastStand == anim::standLeft)  ? anim::quarterFrontLeft  :
+                      (lastStand == anim::standRight) ? anim::quarterFrontRight :
+                                                             lastStand;
           idleState = anim::none;
         }
         return sf::Vector2f();
       },
-      true, { }, { }
+      false, { }, { }
     } },
     { TkPlayer::anim::idle4, { 22U, 30U, &mIdleA,
       [this](uint32_t /*spriteIndex*/){
         if (mIdleA.isAnimationFinished()) {
-          animState = (lastStandState == anim::standLeft)  ? anim::quarterFrontLeft  :
-                      (lastStandState == anim::standRight) ? anim::quarterFrontRight :
-                                                             lastStandState;
+          animState = (lastStand == anim::standLeft)  ? anim::quarterFrontLeft  :
+                      (lastStand == anim::standRight) ? anim::quarterFrontRight :
+                                                             lastStand;
           idleState = anim::none;
         }
         return sf::Vector2f();
       },
-      true, { }, { }
+      false, { }, { }
     } },
     { TkPlayer::anim::idle5, { 120U, 134U, &mIdleC,
       [this](uint32_t /*spriteIndex*/){
         if (mIdleC.isAnimationFinished()) {
-          animState = (lastStandState == anim::standLeft)  ? anim::quarterFrontLeft  :
-                      (lastStandState == anim::standRight) ? anim::quarterFrontRight :
-                                                             lastStandState;
+          animState = (lastStand == anim::standLeft)  ? anim::quarterFrontLeft  :
+                      (lastStand == anim::standRight) ? anim::quarterFrontRight :
+                                                             lastStand;
           idleState = anim::none;
         }
         return sf::Vector2f();
       },
-      true, { }, { }
+      false, { }, { }
     } },
     { TkPlayer::anim::idle6, { 64U, 111U, &mIdleA,
       [this](uint32_t /*spriteIndex*/){
         if (mIdleA.isAnimationFinished()) {
-          animState = (lastStandState == anim::standLeft)  ? anim::quarterFrontLeft  :
-                      (lastStandState == anim::standRight) ? anim::quarterFrontRight :
-                                                             lastStandState;
+          animState = (lastStand == anim::standLeft)  ? anim::quarterFrontLeft  :
+                      (lastStand == anim::standRight) ? anim::quarterFrontRight :
+                                                             lastStand;
           idleState = anim::none;
         }
         return sf::Vector2f();
       },
-      true, { }, { }
+      false, { }, { }
     } },
     { TkPlayer::anim::idle7, { 112U, 155U, &mIdleB,
       [this](uint32_t /*spriteIndex*/){
         if (mIdleB.isAnimationFinished()) {
-          animState = (lastStandState == anim::standLeft)  ? anim::quarterFrontLeft  :
-                      (lastStandState == anim::standRight) ? anim::quarterFrontRight :
-                                                             lastStandState;
+          animState = (lastStand == anim::standLeft)  ? anim::quarterFrontLeft  :
+                      (lastStand == anim::standRight) ? anim::quarterFrontRight :
+                                                             lastStand;
           idleState = anim::none;
         }
         return sf::Vector2f();
       },
-      true, { }, { }
+      false, { }, { }
     } },
     { TkPlayer::anim::idle8, { 144U, 182U, &mIdleD,
       [this](uint32_t /*spriteIndex*/){
         if (mIdleD.isAnimationFinished()) {
-          animState = (lastStandState == anim::standLeft)  ? anim::quarterFrontLeft  :
-                      (lastStandState == anim::standRight) ? anim::quarterFrontRight :
-                                                             lastStandState;
+          animState = (lastStand == anim::standLeft)  ? anim::quarterFrontLeft  :
+                      (lastStand == anim::standRight) ? anim::quarterFrontRight :
+                                                             lastStand;
           idleState = anim::none;
         }
         return sf::Vector2f();
       },
-      true, { }, { }
+      false, { }, { }
+    } },
+    { TkPlayer::anim::teleportLookLeft, { 0U, 2U, &mTeleportLookLeft, nullptr, false, {}, {}
+    } },
+    { TkPlayer::anim::teleportLookRight, { 0U, 2U, &mTeleportLookRight, nullptr, false, {}, {}
+    } },
+    { TkPlayer::anim::teleportLookUp, { 0U, 2U, &mTeleportLookUp, nullptr, false, {}, {}
+    } },
+    { TkPlayer::anim::teleportLookDown, { 0U, 2U, &mTeleportLookDown, nullptr, false, {}, {}
+    } },
+    { TkPlayer::anim::teleportLookFront, { 0U, 6U, &mTeleportLookFront, nullptr,
+      true,
+      { {tk::gesture::none, anim::teleportLookUp } },
+      {}
+    } },
+    { TkPlayer::anim::teleportBeamOut, {0U, 14U, &mTeleportBeamOut, nullptr,
+      true,
+      { {tk::gesture::none, anim::teleportBeamIn } },
+      {}
+    } },
+    { TkPlayer::anim::teleportBeamIn, {0U, 11U, &mTeleportBeamIn,
+      [this] (uint32_t spriteIndex) {
+        if (spriteIndex == mTeleportBeamIn.getFirstSprite()) {
+          static const std::unordered_map<tk::gesture, sf::Vector2f> map {
+            { tk::gesture::left,  {-128.f,    0.f} },
+            { tk::gesture::right, { 128.f,    0.f} },
+            { tk::gesture::up,    {   0.f, -128.f} },
+            { tk::gesture::down,  {   0.f,  128.f} }
+          };
+          return map.at(teleportGesture);
+        }
+        return sf::Vector2f();
+      },
+      true,
+      { {tk::gesture::none, anim::standFront } },
+      {}
     } },
     { TkPlayer::anim::levelComplete, { 48U, 130U, &mAppear, nullptr,
       true, // Transition on last sprite
@@ -383,11 +422,11 @@ TkPlayer::TkPlayer()
 sf::Vector2f TkPlayer::move(TkLevel& level, const enum tk::gesture& gesture) {
   sf::Vector2f offset(0.f, 0.f);
 
+  static TkPlayer::anim lastAnimState = anim::none;
   auto currentState = animMap.find(animState);
   if (currentState != animMap.end()) {
     animMachine sm = currentState->second;
 
-    static TkPlayer::anim lastAnimState = anim::none;
     if (animState != lastAnimState) {
       entity = sm.image;
       entity->resetSprite(sm.spriteBegin, sm.spriteEnd);
@@ -415,9 +454,24 @@ sf::Vector2f TkPlayer::move(TkLevel& level, const enum tk::gesture& gesture) {
       }
 
       // Manage transition constraints
-      transitionHandler(level, lastAnimState);
+      transitionHandler(level, gesture, lastAnimState);
     }
   }
+
+  // clang-format off
+    static const std::unordered_map<tk::gesture, sf::Vector2f> map {
+      {tk::gesture::left,{-10.66f,   0.f  }}, {tk::gesture::right,{10.66f,  0.f  }},
+      {tk::gesture::up,  {  0.f  , -10.66f}}, {tk::gesture::down, { 0.f  , 10.66f}}};
+    switch (lastAnimState) {
+      case anim::jumpUpLeft: return { -5.33f, -5.33f };
+      case anim::jumpUpRight: return {  5.33f, -5.33f };
+      case anim::jumpDownLeft: return { -4.57f,  4.57f };
+      case anim::jumpDownRight: return {  4.57f,  4.57f };
+      case anim::teleportBeamIn: return map.at(teleportGesture);
+      default: break;
+    }
+  // clang-format on
+
   return offset;
 }
 
@@ -425,7 +479,9 @@ sf::Vector2f TkPlayer::move(TkLevel& level, const enum tk::gesture& gesture) {
  * @brief TkPlayer::transitionHandler
  */
 void TkPlayer::transitionHandler(const TkLevel& level,
+                                 const enum tk::gesture& gesture,
                                  const TkPlayer::anim& currentAnimState) {
+
   // clang-format off
   switch (animState) {
     case anim::standFront: {
@@ -433,15 +489,15 @@ void TkPlayer::transitionHandler(const TkLevel& level,
           level.isMovable(entity->getPosition(), tk::gesture::none);
       if (action == tk::action::fall)
         animState = anim::fallFront;
-      else
-        animState = (lastStandState == anim::standLeft)  ? anim::quarterFrontLeft  :
-                    (lastStandState == anim::standRight) ? anim::quarterFrontRight :
-                                                           standFront;
+      else if (gesture != tk::gesture::left && gesture != tk::gesture::right)
+        animState = (lastStand == anim::standLeft)  ? anim::quarterFrontLeft  :
+                    (lastStand == anim::standRight) ? anim::quarterFrontRight :
+                                                      standFront;
       break;
     }
     case anim::standLeft:
     case anim::standRight: {
-      lastStandState = animState;
+      lastStand = animState;
       break;
     }
     case anim::runLeft01:
@@ -473,11 +529,11 @@ void TkPlayer::transitionHandler(const TkLevel& level,
           entity->getPosition(), tk::gesture::up);
       if (action != tk::action::ladderUp) {
         if (currentAnimState == anim::climbUp)
-          animState = (lastStandState == anim::standLeft)
+          animState = (lastStand == anim::standLeft)
                           ? anim::quarterBackLeft
                           : anim::quarterBackRight;
         else
-          animState = lastStandState;
+          animState = lastStand;
       }
       break;
     }
@@ -486,11 +542,11 @@ void TkPlayer::transitionHandler(const TkLevel& level,
           entity->getPosition(), tk::gesture::down);
       if (action != tk::action::ladderDown) {
         if (currentAnimState == anim::climbDown)
-          animState = (lastStandState == anim::standLeft)
+          animState = (lastStand == anim::standLeft)
                           ? anim::quarterBackLeft
                           : anim::quarterBackRight;
         else
-          animState = lastStandState;
+          animState = lastStand;
       }
       break;
     }
@@ -501,9 +557,22 @@ void TkPlayer::transitionHandler(const TkLevel& level,
       break;
     }
     case anim::standBack: {
-      animState = (lastStandState == anim::standLeft)
+      animState = (lastStand == anim::standLeft)
                       ? anim::quarterBackLeft
                       : anim::quarterBackRight;
+      break;
+    }
+    case teleportLookLeft:
+    case teleportLookRight:
+    case teleportLookUp:
+    case teleportLookDown:
+    case teleportLookFront: {
+      if (!teleportActivated) {
+        animState = (lastStand == anim::standLeft)
+                        ? anim::quarterFrontLeft
+                        : anim::quarterFrontRight;
+      }
+      break;
     }
     default: break;
   }
@@ -549,8 +618,8 @@ void TkPlayer::idleTransitionHandler() {
     // Enable idle animation
     if (idleState != anim::none) {
       // clang-format off
-      animState = (lastStandState == anim::standLeft)  ? anim::quarterLeftFront  :
-                  (lastStandState == anim::standRight) ? anim::quarterRightFront :
+      animState = (lastStand == anim::standLeft)  ? anim::quarterLeftFront  :
+                  (lastStand == anim::standRight) ? anim::quarterRightFront :
                                                          idleState;
       // clang-format on
     }

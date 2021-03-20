@@ -16,6 +16,8 @@ Game::Game(void)
   if (!font.loadFromFile("fonts/Z003.ttf")) {
     std::cerr << "Could not load font Z003.ttf\n";
   }
+
+//  window.create(sf::VideoMode::getFullscreenModes()[0], "Toki Tori", sf::Style::Fullscreen);
   text.setFont(font);
   text.setFillColor(sf::Color::White);
   text.setStyle(sf::Text::Bold);
@@ -38,10 +40,7 @@ Game::Game(void)
 
   try {
     level = new Forest(window.getSize());
-//    level->createLevel("maps/ForestFalls/charlie1.tokilevel");
-//    level->createLevel("maps/ForestFalls/01_ForestFalls.tokilevel");
-    level->createLevel("maps/ForestFalls/03_ForestFalls.tokilevel");
-//    level->createLevel("maps/ForestFalls/02_ForestFalls.tokilevel");
+    level->createLevel(levelList[levelIndex]);
   } catch (const std::string& e) {
     std::cerr << e << std::endl;
   }
@@ -67,8 +66,9 @@ void Game::run(void) {
       // Restore the default viewport
       window.setView(window.getDefaultView());
       // Launch the new level
+      levelIndex = ++levelIndex % levelList.size();
       level = new Forest(window.getSize());
-      level->createLevel("maps/ForestFalls/charlie1.tokilevel");
+      level->createLevel(levelList[levelIndex]);
 
       //    _window.close();
     }
@@ -103,8 +103,13 @@ void Game::processEvents(void) {
         window.close();
         break;
       case sf::Event::MouseButtonPressed:
-        level->isIdle() ? level->start() : level->click();
+      case sf::Event::MouseButtonReleased:
+      case sf::Event::MouseMoved:
+      case sf::Event::MouseEntered:
+      case sf::Event::MouseLeft: {
+        level->handleMouseEvent(event);
         break;
+      }
       default:
         break;
     }
@@ -136,12 +141,11 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed) {
 void Game::update() {
   // clang-format off
   enum tk::gesture gesture =
-      (escape)       ? tk::gesture::back  :
       (movingLeft)   ? tk::gesture::left  :
       (movingRight)  ? tk::gesture::right :
       (movingUp)     ? tk::gesture::up    :
       (movingDown)   ? tk::gesture::down  :
-                        tk::gesture::none;
+                       tk::gesture::none;
   // clang-format on
   level->update(gesture);
   text.setString(std::to_string(level->getEggNumber()));

@@ -8,9 +8,17 @@
  * @param windowSize
  */
 Forest::Forest(const sf::Vector2u& windowSize)
-    : TkLevel(windowSize), bridgeBuilder(bridgeBuilderPath, {0, 0, 64, 32}) {
-  bridgeBuilder.setOrigin(0, 0);
-  bridgeBuilder.resetSprite(0, 3);
+    : TkLevel(windowSize),
+      bridgeBuildAnim(bridgeBuilderPath, {0, 0, 64, 32}),
+      bridgeBuildNoAnim(bridgeBuilderNoCanDoPath, {0, 0, 64, 32}) {
+  bridgeBuildAnim.setOrigin(0, 0);
+  bridgeBuildAnim.resetSprite(0, 4);
+
+  bridgeBuildNoAnim.setOrigin(0, 0);
+  bridgeBuildNoAnim.resetSprite(0, 4);
+
+  teleportGhostAnim.resetSprite(0, 4);
+  teleportGhostNoAnim.resetSprite(0, 4);
 }
 
 Forest::~Forest(void) {}
@@ -75,14 +83,43 @@ void Forest::render(sf::RenderWindow& window) {
   // push
   window.setView(view);
   {
-    window.clear(sf::Color::Transparent);
+    //window.clear(sf::Color::Transparent);
+    window.clear(sf::Color(255, 255, 255, 255));
     window.draw(mapSprite);
+    if (bridgeBuildAnimPtr) window.draw(bridgeBuildAnim);
     for (auto egg : eggList) window.draw(*egg->drawableSprite());
     window.draw(*player.drawableSprite());
     window.draw(foregroundSprite);
+    if (bridgeBuildNoAnimPtr) window.draw(bridgeBuildNoAnim);
+
+    if (teleportInProgress == true) {
+      for (uint32_t index = 0U; index < teleportGate::size; ++index) {
+        if (teleportGhost[index].anim != nullptr) {
+          teleportGhost[index].anim->setPosition(teleportGhost[index].pos);
+          window.draw(*teleportGhost[index].anim);
+        }
+      }
+    }
   }
   // pop
   window.setView(window.getDefaultView());
+
+  if (action.isSelected()) window.draw(action.selectedImage);
+  if (action.isHovered()) window.draw(action.hoveredImage);
+  for (int i = 0; i < TkAction::size; ++i) {
+    window.draw(action.list[i].button);
+    if (action.list[i].enabled) {
+      sf::Vector2f position = action.list[i].button.getPosition();
+
+      action.counterImage.setPosition(position.x, position.y + 41.5f);
+      window.draw(action.counterImage);
+
+      action.counterText.setString(std::to_string(action.list[i].counter));
+      action.counterText.setOrigin(6.f, 16.f);
+      action.counterText.setPosition(action.counterImage.getPosition());
+      window.draw(action.counterText);
+    }
+  }
 }
 
 /**
@@ -181,20 +218,34 @@ tk::action Forest::isMovable(const sf::Vector2f& origin, tk::gesture gesture, bo
 void Forest::update(const enum tk::gesture& gesture) {
   TkLevel::update(gesture);
 
-  if (bridgeBuilderPtr != nullptr) {
-    if (bridgeBuilder.nextSprite() == bridgeBuilder.getLastSprite()) {
+  // BRIDGE
+  if (bridgeBuildAnimPtr != nullptr) {
+    if (bridgeBuildAnim.nextSprite() == bridgeBuildAnim.getLastSprite()) {
       levelTiles.setTextureRect(sprites[0x36]);
-      levelTiles.setPosition(bridgeBuilder.getPosition());
+      levelTiles.setPosition(bridgeBuildAnim.getPosition());
       mapRender.draw(levelTiles);
-      levelTiles.setPosition(bridgeBuilder.getPosition() +
+      levelTiles.setPosition(bridgeBuildAnim.getPosition() +
                              sf::Vector2f{32.f, 0.f});
       mapRender.draw(levelTiles);
 
       // Free the bridge builder pointer
-      bridgeBuilderPtr = nullptr;
-    } else {
-      // Until animation sprite is not the last
-      mapRender.draw(bridgeBuilder);
+      bridgeBuildAnimPtr = nullptr;
+    }
+  }
+  if (bridgeBuildNoAnimPtr != nullptr) {
+    if (bridgeBuildNoAnim.nextSprite() == bridgeBuildNoAnim.getLastSprite()) {
+      bridgeBuildNoAnimPtr = nullptr;
+    }
+  }
+
+  // TELEPORT
+  if (teleportInProgress == true) {
+    if (teleportGhost[teleportGate::up].anim != nullptr   ||
+        teleportGhost[teleportGate::down].anim != nullptr ||
+        teleportGhost[teleportGate::left].anim != nullptr ||
+        teleportGhost[teleportGate::right].anim != nullptr) {
+      teleportGhostAnim.nextSprite();
+      teleportGhostNoAnim.nextSprite();
     }
   }
 }
@@ -202,8 +253,7 @@ void Forest::update(const enum tk::gesture& gesture) {
 /**
  * @brief Forest::bridgeBuilderHandler
  * @param origin
- * @param anim
- * @param position
+ * @param gesture
  */
 bool Forest::bridgeBuilderHandler(const sf::Vector2f& origin,
                                   const tk::gesture& gesture) {
@@ -211,22 +261,27 @@ bool Forest::bridgeBuilderHandler(const sf::Vector2f& origin,
       ((uint32_t)std::rint(origin.x) / 32) +
       (((uint32_t)std::rint(origin.y) / 32 + 1) * data.levelWidth);
 
-  if (gesture == tk::gesture::left || gesture == tk::gesture::right) {
+  if (player.actionAuthorized() &&
+      (gesture == tk::gesture::left || gesture == tk::gesture::right)) {
     for (int i = 0; i < 2; ++i) {
       int32_t next = (gesture == tk::gesture::left ? -1 : 1);
 
       position -= (gesture == tk::gesture::left ? 1 : 0);
-      if (data.levelMap[position] == 0xFF &&
+      if (action.authorized(TkAction::bridge)    &&
+          data.levelMap[position]        == 0xFF &&
           data.levelMap[position + next] == 0xFF) {
 
-        if (bridgeBuilderPtr == nullptr) {
+        if (bridgeBuildAnimPtr == nullptr) {
           data.levelMap[position] = data.levelMap[position + next] = 0x36;
           position -= (gesture == tk::gesture::left ? 1 : 0);
 
-          bridgeBuilderPtr = &bridgeBuilder;
-          bridgeBuilder.setPosition((position % data.levelWidth) << 5,
-                                    (position / data.levelWidth) << 5);
+          bridgeBuildAnimPtr = &bridgeBuildAnim;
+          bridgeBuildAnim.setPosition((position % data.levelWidth) << 5,
+                                 (position / data.levelWidth) << 5);
 
+          // Play win sound
+          bridgeBuildSound.stop();
+          bridgeBuildSound.play();
           return true;
         }
         return false;
@@ -235,5 +290,54 @@ bool Forest::bridgeBuilderHandler(const sf::Vector2f& origin,
     }
   }
 
+  if (bridgeBuildNoAnimPtr == nullptr) {
+    position -= 1;
+    bridgeBuildNoAnimPtr = &bridgeBuildNoAnim;
+    bridgeBuildNoAnim.setPosition((position % data.levelWidth) << 5,
+                             (position / data.levelWidth) << 5);
+    // Play fail sound
+    actionFailSound.stop();
+    actionFailSound.play();
+  }
   return false;
+}
+
+/**
+ * @brief Forest::teleportHandler
+ * @param origin
+ */
+void Forest::teleportHandler(const sf::Vector2f& origin) {
+  uint32_t position = ((uint32_t)std::rint(origin.x) / 32) +
+                      (((uint32_t)std::rint(origin.y) / 32) * data.levelWidth);
+
+  // clang-format off
+  struct handler { uint32_t position; bool enabled; };
+  handler gate[teleportGate::size] = {
+      {position - (data.levelWidth << 2), (origin.y >= 160)},
+      {position + (data.levelWidth << 2), (origin.y <= (data.levelHeight << 5) - 192)},
+      {position - 4,                      (origin.x >= 192)},
+      {position + 4,                      (origin.x <= (data.levelWidth  << 5) - 192)}};
+
+  for (uint32_t index = 0U; index < teleportGate::size; ++index) {
+    if (gate[index].enabled) {
+      uint32_t pos = gate[index].position;
+      if (data.levelMap[pos]                       > 0x39 &&
+          data.levelMap[pos - 1]                   > 0x39 &&
+          data.levelMap[pos - data.levelWidth]     > 0x39 &&
+          data.levelMap[pos - data.levelWidth - 1] > 0x39) {
+        teleportGhost[index].anim = &teleportGhostAnim;
+        teleportGhost[index].enabled = true;
+      } else {
+        teleportGhost[index].anim = &teleportGhostNoAnim;
+        teleportGhost[index].enabled = false;
+      }
+      teleportGhost[index].pos.x = ((pos % data.levelWidth) << 5);
+      teleportGhost[index].pos.y = ((pos / data.levelWidth) << 5);
+      teleportGhost[index].rect = { teleportGhost[index].pos.x - 32.f,
+                                    teleportGhost[index].pos.y - 32.f, 64.f, 64.f };
+    } else {
+      teleportGhost[index].anim = nullptr;
+    }
+  }
+  // clang-format on
 }

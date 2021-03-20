@@ -36,3 +36,42 @@ bool TkImage::loadFromFile(const std::string& filename) {
   setTexture(texture);
   return true;
 }
+
+void TkImage::setTkOrigin(const TkOrigin& origin) {
+  float x = 0.f;
+  float y = 0.f;
+
+  // Horizontality
+  switch (origin) {
+    case topRight:
+    case centerRight:
+    case bottomRight:
+      x = getLocalBounds().width;
+      break;
+    case center:
+    case topCenter:
+    case bottomCenter:
+      x = getLocalBounds().width / 2.f;
+      break;
+    default:
+      break;
+  }
+
+  // Verticality
+  switch (origin) {
+    case bottomRight:
+    case bottomLeft:
+    case bottomCenter:
+      y = getLocalBounds().height;
+      break;
+    case centerRight:
+    case centerLeft:
+    case center:
+      y = getLocalBounds().height / 2.f;
+      break;
+    default:
+      break;
+  }
+
+  setOrigin(x, y);
+}

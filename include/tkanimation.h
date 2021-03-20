@@ -12,6 +12,7 @@ class TkAnimation: public TkImage
   TkAnimation(const sf::Texture& texture, const sf::IntRect& rectangle);
 
   bool loadFromFile(const std::string& filepath, const sf::IntRect& rectangle);
+  virtual void setTkOrigin(const TkOrigin& origin) override;
 
   inline uint getCurrentSprite(void) const { return currentSprite; }
   inline uint getFirstSprite(void) const { return firstSprite; }

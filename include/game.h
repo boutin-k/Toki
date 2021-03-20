@@ -10,6 +10,15 @@
 #include "tkimage.h"
 
 class Game {
+  std::vector<std::string> levelList {
+    { "maps/ForestFalls/01_ForestFalls.tokilevel" },
+    { "maps/ForestFalls/03_ForestFalls.tokilevel" },
+    { "maps/ForestFalls/charlie1.tokilevel" },
+    { "maps/ForestFalls/charlie2.tokilevel" },
+    { "maps/ForestFalls/charlie3.tokilevel" },
+    { "maps/ForestFalls/charlie4.tokilevel" }
+  };
+
  public:
   Game();
   ~Game();
@@ -36,6 +45,8 @@ class Game {
   TkImage   score;
   sf::Text  text;
   sf::Font  font;
+
+  uint32_t levelIndex{0U};
 };
 
 #endif // GAME_H

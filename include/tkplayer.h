@@ -17,7 +17,9 @@ class TkPlayer : public TkEntity {
     none, idle1, idle2, idle3, idle4, idle5, idle6, idle7, idle8, appear, standFront, standLeft, standRight, standBack,
     quarterFrontLeft, quarterFrontRight, quarterBackLeft, quarterBackRight, quarterLeftFront, quarterRightFront,
     turnLeft, turnRight, runLeft01, runLeft02, runRight01, runRight02, jumpUpLeft, jumpUpRight, jumpDownLeft, jumpDownRight,
-    fallFront, fallLeft, fallRight, landFront, dizzy, climbUp, climbDown, levelComplete, finish };
+    teleportLookLeft, teleportLookRight, teleportLookUp, teleportLookDown, teleportLookFront, teleportBeamIn, teleportBeamOut,
+    createCrateLeft, createCrateRight,  moveBlocLeft, moveBlocRight, fallFront, fallLeft, fallRight, landFront,
+    dizzy, climbUp, climbDown, levelComplete, finish };
   // clang-format on
 
   TkPlayer();
@@ -25,7 +27,31 @@ class TkPlayer : public TkEntity {
   inline anim getState() const { return animState; }
   inline void setState(enum TkPlayer::anim anim) { animState = anim; }
   inline void setVisible() { if (animState == anim::none) animState = anim::appear; }
-  inline anim getStandState() { return lastStandState; }
+  inline anim getStandState() const { return lastStand; }
+
+
+  inline bool actionAuthorized() {
+    switch (animState) {
+      case anim::none:
+      case anim::fallFront:
+      case anim::fallLeft:
+      case anim::fallRight:
+      case anim::levelComplete:
+      case anim::finish:
+        return false;
+      default:
+        return true;
+    }
+  }
+
+  inline void activeTeleport(bool active) {
+    teleportActivated = active;
+    if (active) animState = teleportLookFront;
+  }
+  inline void updateTeleportState(TkPlayer::anim anim, const enum tk::gesture& gesture = tk::gesture::none) {
+    animState = anim;
+    teleportGesture = gesture;
+  }
 
   sf::Vector2f move(TkLevel& level, const enum tk::gesture& gesture = tk::gesture::none) override;
 
@@ -33,13 +59,11 @@ class TkPlayer : public TkEntity {
   void updateIdleState(bool reset = false);
   void idleTransitionHandler();
   void dizzyTransitionHandler();
-  void transitionHandler(const TkLevel& level, const TkPlayer::anim& currentAnimState);
-
+  void transitionHandler(const TkLevel& level, const enum tk::gesture& gesture, const TkPlayer::anim& currentAnimState);
 
   enum anim animState { anim::none };
   enum anim idleState { anim::none };
-
-  enum anim lastStandState { anim::standFront };
+  enum anim lastStand { anim::standFront };
 
   TkAnimation mAppear;
   TkAnimation mRun;
@@ -53,6 +77,16 @@ class TkPlayer : public TkEntity {
   TkAnimation mIdleB;
   TkAnimation mIdleC;
   TkAnimation mIdleD;
+
+  bool teleportActivated{false};
+  tk::gesture teleportGesture;
+  TkAnimation mTeleportLookLeft;
+  TkAnimation mTeleportLookRight;
+  TkAnimation mTeleportLookUp;
+  TkAnimation mTeleportLookDown;
+  TkAnimation mTeleportLookFront;
+  TkAnimation mTeleportBeamIn;
+  TkAnimation mTeleportBeamOut;
 
   TkSound mAppearSnd;
   TkSound mTurnSnd;

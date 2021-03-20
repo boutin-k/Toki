@@ -1,6 +1,7 @@
 #include "tklevel.h"
 #include "pugixml.hpp"
 
+#include <unordered_map>
 #include <fstream>
 #include <string>
 
@@ -12,16 +13,22 @@ static constexpr auto tkDefaultVolume = 25.f;
  */
 TkLevel::TkLevel(const sf::Vector2u& windowSize)
     : view(static_cast<sf::Vector2f>(windowSize / 2U), static_cast<sf::Vector2f>(windowSize)),
-      windowSize(windowSize) {
+      windowSize(windowSize), action(windowSize),
+      teleportGhostAnim(teleportGhostPath, {0, 0, 48, 48}),
+      teleportGhostNoAnim(teleportGhostNoCanDoPath, {0, 0, 48, 48}) {
   if (!eggSnd.loadFromFile("audio/sfx/sfx [12].wav"))
     std::cerr << "Error. Can't load sound file 'audio/sfx/sfx [12].wav'"
               << std::endl;
-  if (!bridgeSoundWin.loadFromFile("audio/sfx/sfx [4].wav"))
+  if (!bridgeBuildSound.loadFromFile("audio/sfx/sfx [4].wav"))
     std::cerr << "Error. Can't load sound file 'audio/sfx/sfx [4].wav'"
               << std::endl;
-  if (!bridgeSoundFailed.loadFromFile("audio/sfx/sfx [6].wav"))
+  if (!actionFailSound.loadFromFile("audio/sfx/sfx [6].wav"))
     std::cerr << "Error. Can't load sound file 'audio/sfx/sfx [6].wav'"
               << std::endl;
+  if (!teleportSound.loadFromFile("audio/sfx/sfx [17].wav"))
+    std::cerr << "Error. Can't load sound file 'audio/sfx/sfx [17].wav'"
+              << std::endl;
+  teleportSound.setLoop(true);
 }
 
 /**
@@ -120,6 +127,8 @@ void TkLevel::createLevel(const std::string& levelName) {
 
   buildBoard();
   resetPosition();
+  action.update(data.action);
+
   (*musicList[musicCounter].get())->play();
 }
 
@@ -202,8 +211,8 @@ void TkLevel::initShoebox(const pugi::xml_document& domDocument) {
  * @return
  */
 void TkLevel::move(const sf::Vector2f& offset) {
-  static const sf::Vector2u minLimit = windowSize / 2U;
-  static const sf::Vector2u maxLimit =
+  const sf::Vector2u minLimit = windowSize / 2U;
+  const sf::Vector2u maxLimit =
       sf::Vector2u{data.levelWidth << 5, data.levelHeight << 5} - minLimit;
 
   if (offset.x != 0.f || offset.y != 0.f) {
@@ -226,7 +235,7 @@ void TkLevel::move(const sf::Vector2f& offset) {
 }
 
 /**
- * @brief TkLevel::updateGesture
+ * @brief TkLevel::update
  * @param gesture
  */
 void TkLevel::update(const enum tk::gesture& gesture) {
@@ -306,21 +315,141 @@ void TkLevel::eggChecker(const sf::FloatRect& position) {
   }
 }
 
-void TkLevel::click() {
+/**
+ * @brief TkLevel::handleMouseEvent
+ * @param event
+ */
+void TkLevel::handleMouseEvent(const sf::Event& event) {
+
+  switch (event.type) {
+    case sf::Event::MouseButtonPressed: {
+      if (isIdle()) return start();
+
+      auto item = action.handleMouseButtonEvent(event.mouseButton);
+      if (item == TkAction::bridge) buildBridge();
+      if (item == TkAction::teleport) {
+        teleportInProgress = !teleportInProgress;
+        teleportInProgress ? buildTeleport() : clearTeleport();
+      } else if (teleportInProgress) {
+        //clang-format off
+        static const std::unordered_map<teleportGate, tk::gesture> map{
+            { teleportGate::left,   tk::gesture::left   },
+            { teleportGate::right,  tk::gesture::right  },
+            { teleportGate::up,     tk::gesture::up     },
+            { teleportGate::down,   tk::gesture::down   }
+        };
+        //clang-format on
+
+        sf::Vector2f delta(view.getCenter() - view.getSize() / 2.f);
+        for (uint32_t index = 0U; index < teleportGate::size; ++index) {
+          if (teleportGhost[index].enabled &&
+              teleportGhost[index].rect.contains(
+                  event.mouseButton.x + delta.x,
+                  event.mouseButton.y + delta.y)) {
+            player.updateTeleportState(TkPlayer::teleportBeamOut,
+                                       map.at((teleportGate)index));
+//            player.updateTeleportState(TkPlayer::teleportBeamOut,
+//                                       teleportGhost[index].pos);
+            action.decrease(TkAction::teleport);
+            clearTeleport();
+            currentGate = (TkLevel::teleportGate)index;
+            break;
+          }
+        }
+      }
+      break;
+    }
+    case sf::Event::MouseMoved: {
+      action.handleMouseMovedEvent(event.mouseMove);
+
+      if (teleportInProgress) {
+        //clang-format off
+        static const std::unordered_map<teleportGate, TkPlayer::anim> map{
+            { teleportGate::left,   TkPlayer::teleportLookLeft   },
+            { teleportGate::right,  TkPlayer::teleportLookRight  },
+            { teleportGate::up,     TkPlayer::teleportLookUp     },
+            { teleportGate::down,   TkPlayer::teleportLookDown   }
+        };
+        //clang-format on
+
+        sf::Vector2f delta(view.getCenter() - view.getSize() / 2.f);
+        for (uint32_t index = 0U; index < teleportGate::size; ++index) {
+          if (teleportGhost[index].enabled &&
+              teleportGhost[index].rect.contains(event.mouseMove.x + delta.x,
+                                                 event.mouseMove.y + delta.y)) {
+            player.updateTeleportState(map.at((teleportGate)index));
+
+//            // clang-format off
+//            TkPlayer::anim anim = (index == teleportGate::left)  ? TkPlayer::teleportLookLeft  :
+//                                  (index == teleportGate::right) ? TkPlayer::teleportLookRight :
+//                                  (index == teleportGate::up)    ? TkPlayer::teleportLookUp    :
+//                                  (index == teleportGate::down)  ? TkPlayer::teleportLookDown  :
+//                                                                   TkPlayer::teleportLookFront;
+//            // clang-format on
+//            player.updateTeleportState(anim);
+            break;
+          }
+        }
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+/**
+ * @brief TkLevel::buildBridge
+ */
+void TkLevel::buildBridge() {
   // clang-format off
   tk::gesture gesture;
   switch (player.getStandState()) {
-    case TkPlayer::anim::standLeft:  gesture = tk::left;  break;
-    case TkPlayer::anim::standRight: gesture = tk::right; break;
-    default:                         gesture = tk::none;  break;
+    case TkPlayer::anim::standLeft:  gesture = tk::gesture::left;  break;
+    case TkPlayer::anim::standRight: gesture = tk::gesture::right; break;
+    default:                         gesture = tk::gesture::none;  break;
   }
   // clang-format on
 
   if (bridgeBuilderHandler(player.getPosition(), gesture)) {
-    bridgeSoundWin.stop();
-    bridgeSoundWin.play();
-  } else {
-    bridgeSoundFailed.stop();
-    bridgeSoundFailed.play();
+    action.decrease(TkAction::bridge);
   }
+}
+
+/**
+ * @brief TkLevel::buildTeleport
+ */
+void TkLevel::buildTeleport() {
+  if (player.actionAuthorized() &&
+      action.authorized(TkAction::teleport)) {
+    teleportSound.stop();
+    teleportSound.play();
+    player.activeTeleport(true);
+    teleportHandler(player.getPosition());
+  } else {
+    // Play fail sound
+    actionFailSound.stop();
+    actionFailSound.play();
+  }
+}
+
+/**
+ * @brief TkLevel::clearTeleport
+ */
+void TkLevel::clearTeleport() {
+  // clang-format off
+            teleportGhost[teleportGate::up].anim     =
+            teleportGhost[teleportGate::down].anim  =
+            teleportGhost[teleportGate::left].anim    =
+            teleportGhost[teleportGate::right].anim   = nullptr;
+
+            teleportGhost[teleportGate::up].enabled    =
+            teleportGhost[teleportGate::down].enabled =
+            teleportGhost[teleportGate::left].enabled   =
+            teleportGhost[teleportGate::right].enabled  = false;
+  // clang-format on
+
+  teleportSound.stop();
+  player.activeTeleport(false);
+  teleportInProgress = false;
 }

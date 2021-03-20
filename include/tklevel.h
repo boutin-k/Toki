@@ -5,6 +5,7 @@
 #include "tkplayer.h"
 #include "tkegg.h"
 #include "tksound.h"
+#include "tkaction.h"
 
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Graphics/RenderTexture.hpp"
@@ -12,7 +13,7 @@
 #include "SFML/Graphics/Sprite.hpp"
 #include "SFML/System/Vector2.hpp"
 #include "SFML/Graphics/Rect.hpp"
-
+#include "SFML/Window/Event.hpp"
 #include "SFML/Audio/Music.hpp"
 
 #include <memory>
@@ -34,7 +35,6 @@ class TkLevel
   static constexpr uint32_t tkGridMaxHeight{100U};
   static constexpr uint32_t tkVersion{3U};
 
-  enum tkAction { bridge, teleport, block, spare, size };
   struct levelData {
     uint32_t magicNumber           = {0};
     uint32_t version               = {0};
@@ -44,7 +44,7 @@ class TkLevel
     char backXmlFile[128]          = {0};
     char eggsPngFile[128]          = {0};
     char musicFile[128]            = {0};
-    uint8_t action[tkAction::size] = {0};
+    uint8_t action[TkAction::size] = {0, 0, 0, 0};
     uint32_t* levelMap             = {nullptr};
 
     uint32_t getLevelSize() {
@@ -79,11 +79,17 @@ class TkLevel
     move(startPosition - winCenter);
   }
 
-  void click();
+  void handleMouseEvent(const sf::Event& event);
+
+  void buildBridge();
   virtual bool bridgeBuilderHandler(const sf::Vector2f& origin,
                                     const tk::gesture& gesture) = 0;
+  void buildTeleport();
+  void clearTeleport();
+  virtual void teleportHandler(const sf::Vector2f& origin) = 0;
 
   bool isLevelFinish{false};
+
  private:
   void initShoebox(const pugi::xml_document& domDocument);
   void initMusic(const pugi::xml_document& domDocument);
@@ -109,8 +115,8 @@ class TkLevel
   std::vector<TkEgg*> eggList;
   TkSound             eggSnd;
 
-  TkSound             bridgeSoundWin;
-  TkSound             bridgeSoundFailed;
+  TkSound             bridgeBuildSound;
+  TkSound             actionFailSound;
 
   std::vector<std::unique_ptr<sf::Music*>> musicList;
   uint32_t            musicCounter{0};
@@ -119,6 +125,29 @@ class TkLevel
 
   std::unordered_map<std::string, sf::Texture*> shoeboxTextureMap;
   std::list<std::pair<int32_t, sf::Sprite>>     shoeboxSpriteList;
+
+  TkAction action;
+
+  static constexpr auto teleportGhostPath =
+      "textures/sprites/toki/teleportghost.png";
+  static constexpr auto teleportGhostNoCanDoPath =
+      "textures/sprites/toki/teleportghost_nocando.png";
+
+  enum teleportGate : uint32_t { up, down, left, right, size };
+  struct teleportData {
+    bool enabled{false};
+    sf::Vector2f pos;
+    sf::FloatRect rect;
+    TkAnimation* anim{nullptr};
+  };
+
+  bool teleportInProgress{false};
+  TkAnimation teleportGhostAnim;
+  TkAnimation teleportGhostNoAnim;
+  teleportData teleportGhost[teleportGate::size];
+  teleportGate currentGate{teleportGate::size};
+  TkSound teleportSound;
+
 };
 
 #endif // TKLEVEL_H

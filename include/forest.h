@@ -17,15 +17,22 @@ class Forest: public TkLevel
   void render(sf::RenderWindow& window) override;
   tk::action isMovable(const sf::Vector2f& origin, tk::gesture,
                        bool recursiveLocked = false) const override;
+
   bool bridgeBuilderHandler(const sf::Vector2f& origin,
                             const tk::gesture& gesture) override;
+  void teleportHandler(const sf::Vector2f& origin) override;
 
  private:
-  TkAnimation bridgeBuilder;
-  TkAnimation* bridgeBuilderPtr{nullptr};
-
   static constexpr auto bridgeBuilderPath =
       "textures/sprites/objects/BridgeBuilder_forest.png";
+  static constexpr auto bridgeBuilderNoCanDoPath =
+      "textures/sprites/objects/BridgeBuilder_nocando.png";
+
+  TkAnimation bridgeBuildAnim;
+  TkAnimation* bridgeBuildAnimPtr{nullptr};
+
+  TkAnimation bridgeBuildNoAnim;
+  TkAnimation* bridgeBuildNoAnimPtr{nullptr};
 
   // clang-format off
   sf::IntRect sprites[107]{

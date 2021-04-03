@@ -34,7 +34,7 @@ class TkEgg : public TkEntity
   TkAnimation                                  eggAnim;
   std::unordered_map<TkEgg::anim, animMachine> animMap;
 
-  ulong counter;
+  unsigned long counter;
 };
 
 #endif // TKEGG_H

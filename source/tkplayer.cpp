@@ -216,7 +216,7 @@ TkPlayer::TkPlayer()
       { {0U, &mFallSnd}, {4U, &mFallSnd} } // Movement sound
     } },
     { TkPlayer::anim::fallLeft, { 13U, 24U, &mFall,
-      [this](uint spriteIndex){
+      [this](uint32_t spriteIndex){
         static std::array<sf::Vector2f, 12UL> anim =
           {{ {-1.f, 0.f}, {-11.f, -3.f}, {-7.f, 3.f}, {-7.f, 9.f}, {-4.f, 16.f}, {-2.f, 7.f},
              { 0.f, 6.f}, {  0.f,  6.f}, { 0.f, 5.f}, { 0.f, 5.f}, { 0.f, 5.f},  { 0.f, 5.f} }};
@@ -434,7 +434,7 @@ sf::Vector2f TkPlayer::move(TkLevel& level, const enum tk::gesture& gesture) {
       // Update last animation state
       lastAnimState = animState;
     }
-    uint currentId = entity->nextSprite();
+    uint32_t currentId = entity->nextSprite();
     if (sm.func) offset += sm.func(currentId);
 
     if (sm.sound.find(currentId) != sm.sound.end()) {

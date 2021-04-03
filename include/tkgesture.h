@@ -5,7 +5,7 @@
 
 namespace tk {
 
-  enum gesture : uint {
+  enum gesture : unsigned {
     none  = 0,
     left  = 1 << 0,
     right = 1 << 1,
@@ -13,7 +13,7 @@ namespace tk {
     down  = 1 << 3
   };
 
-  enum class action : uint {
+  enum class action : unsigned {
     none        = 0,
     run         = 1 << 0,
     fall        = 1 << 1,

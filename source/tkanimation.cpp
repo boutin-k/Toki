@@ -59,20 +59,20 @@ void TkAnimation::initialize() {
  * @brief TkAnimatedImage::nextSprite
  * @return The position of the current sprite
  */
-uint TkAnimation::nextSprite(void) {
+uint32_t TkAnimation::nextSprite(void) {
   // Loop
-  if ((uint)currentSprite > lastSprite) {
+  if ((uint32_t)currentSprite > lastSprite) {
     currentSprite = firstSprite;
   }
 
   // left, top, width, height
   sf::IntRect rectangle(
-      currentRect.width * ((uint)currentSprite % spritePerLine),
-      currentRect.height * ((uint)currentSprite / spritePerLine),
+      currentRect.width * ((uint32_t)currentSprite % spritePerLine),
+      currentRect.height * ((uint32_t)currentSprite / spritePerLine),
       currentRect.width, currentRect.height);
   setTextureRect(rectangle);
 
-  uint retVal = currentSprite;
+  uint32_t retVal = currentSprite;
 
   if (reverse && reverseInProgress) {
     animationFinished = ((currentSprite -= speed) < firstSprite);

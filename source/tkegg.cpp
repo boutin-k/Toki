@@ -85,7 +85,7 @@ sf::Vector2f TkEgg::move(TkLevel& /*level*/,
       // Update last animation state
       lastAnimState = animState;
     }
-    uint currentId = entity->nextSprite();
+    uint32_t currentId = entity->nextSprite();
     if (sm.func) offset += sm.func(currentId);
 
     if (!sm.transitionOnLast || currentId == sm.spriteEnd) {

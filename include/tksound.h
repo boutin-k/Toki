@@ -11,7 +11,7 @@ class TkSound : public sf::Sound
   TkSound();
   TkSound(const std::string& filename);
   TkSound(const sf::SoundBuffer& sb);
-  ~TkSound();
+  virtual ~TkSound();
 
   bool loadFromFile(const std::string& filename);
 

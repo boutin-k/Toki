@@ -17,7 +17,10 @@ TkSound::TkSound(const sf::SoundBuffer& sb) : sf::Sound(sb) {}
  */
 TkSound::TkSound(const std::string& filename) { loadFromFile(filename); }
 
-TkSound::~TkSound() { stop(); }
+TkSound::~TkSound() {
+  stop();
+  resetBuffer();
+}
 
 /**
  * @brief TkSound::loadFromFile

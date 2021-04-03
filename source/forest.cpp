@@ -38,7 +38,7 @@ void Forest::buildBoard() {
 
     // Populate the egg list
     else if ((data.levelMap[i]&0xFF) == 0xFE) {
-      eggList.push_back(new TkEgg(eggTexture,
+      eggList.push_back(std::make_unique<TkEgg>(eggTexture,
                                    ((i+1) % data.levelWidth) << 5,
                                    ((i+2) / data.levelWidth) << 5));
       data.levelMap[i] +=1;
@@ -83,11 +83,12 @@ void Forest::render(sf::RenderWindow& window) {
   // push
   window.setView(view);
   {
-    //window.clear(sf::Color::Transparent);
     window.clear(sf::Color(255, 255, 255, 255));
+    for (const auto& item : shoebox.getBackList()) window.draw(*item.second.get());
+
     window.draw(mapSprite);
     if (bridgeBuildAnimPtr) window.draw(bridgeBuildAnim);
-    for (auto egg : eggList) window.draw(*egg->drawableSprite());
+    for (auto& egg : eggList) window.draw(*egg->drawableSprite());
     window.draw(*player.drawableSprite());
     window.draw(foregroundSprite);
     if (bridgeBuildNoAnimPtr) window.draw(bridgeBuildNoAnim);
@@ -100,6 +101,7 @@ void Forest::render(sf::RenderWindow& window) {
         }
       }
     }
+    for (const auto& item : shoebox.getFrontList()) window.draw(*item.second.get());
   }
   // pop
   window.setView(window.getDefaultView());
@@ -108,7 +110,7 @@ void Forest::render(sf::RenderWindow& window) {
   if (action.isHovered()) window.draw(action.hoveredImage);
   for (int i = 0; i < TkAction::size; ++i) {
     window.draw(action.list[i].button);
-    if (action.list[i].enabled) {
+    if (action.list[i].enabled && !action.list[i].infinite) {
       sf::Vector2f position = action.list[i].button.getPosition();
 
       action.counterImage.setPosition(position.x, position.y + 41.5f);

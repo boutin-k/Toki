@@ -33,7 +33,7 @@ class TkAction
     return (item < TkItem::size && list[item].enabled && list[item].counter);
   }
 
-  inline void decrease(TkItem item) { if (authorized(item)) list[item].counter--; }
+  inline void decrease(TkItem item) { if (authorized(item) && !list[item].infinite) list[item].counter--; }
   inline bool isSelected() { return selectedVisible; }
   inline bool isHovered() { return hoveredVisible; }
 

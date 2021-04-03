@@ -5,8 +5,6 @@
 #include <fstream>
 #include <string>
 
-static constexpr auto tkDefaultVolume = 25.f;
-
 /**
  * @brief Constructor
  * @param windowSize
@@ -39,22 +37,7 @@ TkLevel::~TkLevel(){
     delete[] data.levelMap;
   }
 
-  for (auto it = eggList.begin(); it != eggList.end(); it++) delete *it;
   eggList.clear();
-
-  for (auto it = shoeboxTextureMap.begin(); it != shoeboxTextureMap.end(); it++)
-    delete &(*it->second);
-
-  if (musicList.size()) {
-    for (auto& music : musicList) {
-      (*music.get())->stop();
-    }
-    musicList.clear();
-  }
-  if (finishMusic.getStatus() != sf::SoundSource::Stopped) {
-    finishMusic.stop();
-  }
-  shoeboxTextureMap.clear();
 }
 
 /**
@@ -122,87 +105,14 @@ void TkLevel::createLevel(const std::string& levelName) {
   file.read((char*)data.levelMap, sizeof(uint32_t) * data.getLevelSize());
   file.close();
 
-  initMusic(domMusic);
-  initShoebox(domShoebox);
+  music.init(domMusic);
+  shoebox.init(domShoebox, {data.levelWidth*16.f, data.levelHeight*16.f});
 
   buildBoard();
   resetPosition();
   action.update(data.action);
 
-  (*musicList[musicCounter].get())->play();
-}
-
-/**
- * @brief TkLevel::initMusic
- * @param domDocument
- */
-void TkLevel::initMusic(const pugi::xml_document& domDocument) {
-  pugi::xml_node audioNode = domDocument.child("audio");
-  std::string path = audioNode.attribute("root").value();
-
-  for (auto item : audioNode.children("music")) {
-    std::string filename = item.attribute("filename").value();
-    sf::Music* music = new sf::Music;
-    if (!music->openFromFile(path + filename)) {
-      std::cerr << "Cannot open music file: " + path + filename + "\n";
-      delete music;
-    } else {
-      music->setVolume(tkDefaultVolume);
-      musicList.push_back(std::make_unique<sf::Music*>(music));
-    }
-  }
-
-  if (!finishMusic.openFromFile("audio/jingles/LevelComplete.ogg")) {
-    std::cerr << "Cannot open music file: audio/jingles/LevelComplete.ogg\n";
-  } else {
-    finishMusic.setVolume(tkDefaultVolume);
-  }
-  if (!diesMusic.openFromFile("audio/jingles/TokiToriDies.ogg")) {
-    std::cerr << "Cannot open music file: audio/jingles/TokiToriDies.ogg\n";
-  } else {
-    diesMusic.setVolume(tkDefaultVolume);
-  }
-}
-
-/**
- * @brief TkLevel::initShoebox
- * @param domDocument
- */
-void TkLevel::initShoebox(const pugi::xml_document& domDocument) {
-  pugi::xml_node backgroundNode =
-      domDocument.child("shoebox").child("background");
-  for (auto item : backgroundNode.children("plane")) {
-    std::string path = item.attribute("texture").value();
-
-    sf::Texture* texture;
-    if (shoeboxTextureMap.find(path) != shoeboxTextureMap.end()) {
-      texture = shoeboxTextureMap.at(path);
-    } else {
-      texture = new sf::Texture;
-      texture->loadFromFile(path);
-      texture->setSmooth(true);
-    }
-
-    sf::Sprite sprite(*texture);
-    sprite.setOrigin(texture->getSize().x / 2, texture->getSize().y / 2);
-    sprite.setPosition(item.attribute("x").as_int(0),
-                       item.attribute("y").as_int(0));
-    sprite.setScale(item.attribute("width").as_float(1.f) / texture->getSize().x,
-                    item.attribute("height").as_float(1.f) / texture->getSize().y);
-    sprite.setRotation(-item.attribute("rotation").as_int(0));
-
-    shoeboxSpriteList.push_back(
-        std::pair<int32_t, sf::Sprite>(item.attribute("z").as_int(), sprite));
-  }
-
-  // Sort the list
-  shoeboxSpriteList.sort(
-      [](const std::pair<int, sf::Sprite>& a,
-         const std::pair<int, sf::Sprite>& b) { return a.first < b.first; });
-  for (auto& item : shoeboxSpriteList) {
-    item.second.move(480, 400);
-    mapRender.draw(item.second);
-  }
+  music.play();
 }
 
 /**
@@ -230,6 +140,8 @@ void TkLevel::move(const sf::Vector2f& offset) {
       center.y = maxLimit.y;
     }
 
+    // Move the shoebox
+    shoebox.move(center - view.getCenter());
     view.setCenter(center);
   }
 }
@@ -255,36 +167,10 @@ void TkLevel::update(const enum tk::gesture& gesture) {
   if (offset.x != 0.f || offset.y != 0.f) move(offset);
 
   // Update the eggs
-  for (auto egg : eggList) egg->move(*this);
+  for (auto& egg : eggList) egg->move(*this);
 
-  updateMusic();
-}
-
-/**
- * @brief TkLevel::updateMusic
- */
-void TkLevel::updateMusic() {
-  if (player.getState() == TkPlayer::anim::finish) {
-    isLevelFinish = (finishMusic.getStatus() == sf::SoundSource::Stopped);
-    return;
-  }
-
-  if (player.getState() == TkPlayer::anim::levelComplete) {
-    if (musicList.size()) {
-      (*musicList[musicCounter].get())->stop();
-      musicList.clear();
-
-      finishMusic.stop();
-      finishMusic.play();
-    }
-    return;
-  }
-
-  if ((*musicList[musicCounter].get())->getStatus() == sf::SoundSource::Stopped) {
-    musicCounter = (musicCounter + 1) % musicList.size();
-    (*musicList[musicCounter].get())->stop();
-    (*musicList[musicCounter].get())->play();
-  }
+  // Update music
+  finish = !music.update(player.getState());
 }
 
 /**
@@ -294,7 +180,7 @@ void TkLevel::updateMusic() {
 void TkLevel::eggChecker(const sf::FloatRect& position) {
   for (auto it = eggList.begin(); it != eggList.end();) {
     if ((*it)->getState() == TkEgg::anim::free) {
-      delete (*it);
+      delete (*it).release();
       it = eggList.erase(it);
     } else {
       sf::FloatRect rect =
@@ -326,8 +212,8 @@ void TkLevel::handleMouseEvent(const sf::Event& event) {
       if (isIdle()) return start();
 
       auto item = action.handleMouseButtonEvent(event.mouseButton);
-      if (item == TkAction::bridge) buildBridge();
-      if (item == TkAction::teleport) {
+      if (item == TkAction::TkItem::bridge) buildBridge();
+      if (item == TkAction::TkItem::teleport) {
         teleportInProgress = !teleportInProgress;
         teleportInProgress ? buildTeleport() : clearTeleport();
       } else if (teleportInProgress) {
@@ -348,9 +234,7 @@ void TkLevel::handleMouseEvent(const sf::Event& event) {
                   event.mouseButton.y + delta.y)) {
             player.updateTeleportState(TkPlayer::teleportBeamOut,
                                        map.at((teleportGate)index));
-//            player.updateTeleportState(TkPlayer::teleportBeamOut,
-//                                       teleportGhost[index].pos);
-            action.decrease(TkAction::teleport);
+            action.decrease(TkAction::TkItem::teleport);
             clearTeleport();
             currentGate = (TkLevel::teleportGate)index;
             break;
@@ -378,15 +262,6 @@ void TkLevel::handleMouseEvent(const sf::Event& event) {
               teleportGhost[index].rect.contains(event.mouseMove.x + delta.x,
                                                  event.mouseMove.y + delta.y)) {
             player.updateTeleportState(map.at((teleportGate)index));
-
-//            // clang-format off
-//            TkPlayer::anim anim = (index == teleportGate::left)  ? TkPlayer::teleportLookLeft  :
-//                                  (index == teleportGate::right) ? TkPlayer::teleportLookRight :
-//                                  (index == teleportGate::up)    ? TkPlayer::teleportLookUp    :
-//                                  (index == teleportGate::down)  ? TkPlayer::teleportLookDown  :
-//                                                                   TkPlayer::teleportLookFront;
-//            // clang-format on
-//            player.updateTeleportState(anim);
             break;
           }
         }
@@ -412,7 +287,7 @@ void TkLevel::buildBridge() {
   // clang-format on
 
   if (bridgeBuilderHandler(player.getPosition(), gesture)) {
-    action.decrease(TkAction::bridge);
+    action.decrease(TkAction::TkItem::bridge);
   }
 }
 
@@ -421,7 +296,7 @@ void TkLevel::buildBridge() {
  */
 void TkLevel::buildTeleport() {
   if (player.actionAuthorized() &&
-      action.authorized(TkAction::teleport)) {
+      action.authorized(TkAction::TkItem::teleport)) {
     teleportSound.stop();
     teleportSound.play();
     player.activeTeleport(true);
@@ -438,15 +313,15 @@ void TkLevel::buildTeleport() {
  */
 void TkLevel::clearTeleport() {
   // clang-format off
-            teleportGhost[teleportGate::up].anim     =
-            teleportGhost[teleportGate::down].anim  =
-            teleportGhost[teleportGate::left].anim    =
-            teleportGhost[teleportGate::right].anim   = nullptr;
+  teleportGhost[teleportGate::up].anim     =
+  teleportGhost[teleportGate::down].anim  =
+  teleportGhost[teleportGate::left].anim    =
+  teleportGhost[teleportGate::right].anim   = nullptr;
 
-            teleportGhost[teleportGate::up].enabled    =
-            teleportGhost[teleportGate::down].enabled =
-            teleportGhost[teleportGate::left].enabled   =
-            teleportGhost[teleportGate::right].enabled  = false;
+  teleportGhost[teleportGate::up].enabled    =
+  teleportGhost[teleportGate::down].enabled =
+  teleportGhost[teleportGate::left].enabled   =
+  teleportGhost[teleportGate::right].enabled  = false;
   // clang-format on
 
   teleportSound.stop();

@@ -11,6 +11,7 @@
 
 class Game {
   std::vector<std::string> levelList {
+//    { "maps/ForestFalls/TestShoebox.tokilevel" },
     { "maps/ForestFalls/01_ForestFalls.tokilevel" },
     { "maps/ForestFalls/03_ForestFalls.tokilevel" },
     { "maps/ForestFalls/charlie1.tokilevel" },
@@ -21,7 +22,7 @@ class Game {
 
  public:
   Game();
-  ~Game();
+  virtual ~Game();
   void run();
 
  private:

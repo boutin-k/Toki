@@ -48,10 +48,9 @@ void TkAction::update(const uint8_t buffer[]) {
 
     if (value == 0xFF)
       list[item].infinite = true;
-    else
-      list[item].counter = value;
 
     // Enable/Disable button
+    list[item].counter = value;
     list[item].enabled = (value != 0);
 
     std::string filename = data[item].first;

@@ -10,7 +10,7 @@ class Forest: public TkLevel
 {
  public:
   Forest(const sf::Vector2u& windowSize);
-  ~Forest();
+  virtual ~Forest();
 
   void buildBoard() override;
   void update(const enum tk::gesture& gesture) override;

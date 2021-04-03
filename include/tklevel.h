@@ -6,6 +6,8 @@
 #include "tkegg.h"
 #include "tksound.h"
 #include "tkaction.h"
+#include "tkshoebox.h"
+#include "tkmusic.h"
 
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Graphics/RenderTexture.hpp"
@@ -88,12 +90,7 @@ class TkLevel
   void clearTeleport();
   virtual void teleportHandler(const sf::Vector2f& origin) = 0;
 
-  bool isLevelFinish{false};
-
- private:
-  void initShoebox(const pugi::xml_document& domDocument);
-  void initMusic(const pugi::xml_document& domDocument);
-  void updateMusic();
+  bool finish{false};
 
  protected:
   levelData           data;
@@ -112,21 +109,14 @@ class TkLevel
   TkPlayer            player;
 
   sf::Texture         eggTexture;
-  std::vector<TkEgg*> eggList;
+  std::vector<std::unique_ptr<TkEgg>> eggList;
   TkSound             eggSnd;
 
   TkSound             bridgeBuildSound;
   TkSound             actionFailSound;
-
-  std::vector<std::unique_ptr<sf::Music*>> musicList;
-  uint32_t            musicCounter{0};
-  sf::Music           finishMusic;
-  sf::Music           diesMusic;
-
-  std::unordered_map<std::string, sf::Texture*> shoeboxTextureMap;
-  std::list<std::pair<int32_t, sf::Sprite>>     shoeboxSpriteList;
-
-  TkAction action;
+  TkMusic             music;
+  TkShoebox           shoebox;
+  TkAction            action;
 
   static constexpr auto teleportGhostPath =
       "textures/sprites/toki/teleportghost.png";

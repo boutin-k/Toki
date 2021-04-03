@@ -11,7 +11,8 @@ TkImage::TkImage() : sf::Sprite() {}
  * @brief TkImage::TkImage
  * @param texture
  */
-TkImage::TkImage(const sf::Texture& t) : sf::Sprite(t) {
+TkImage::TkImage(const sf::Texture& t) : sf::Sprite(), texture(t) {
+  setTexture(texture);
 }
 
 /**

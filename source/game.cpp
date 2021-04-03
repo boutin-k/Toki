@@ -61,7 +61,7 @@ void Game::run(void) {
   sf::Time timeSinceLastUpdate = sf::Time::Zero;
 
   while (window.isOpen()) {
-    if (level->isLevelFinish) {
+    if (level->finish) {
       delete level;
       // Restore the default viewport
       window.setView(window.getDefaultView());

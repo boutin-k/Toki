@@ -12,48 +12,56 @@
 		<particle effect_file="effects/forestfalls/bees_to_left.trigger" x="818" y="218" z="-500" />
 		<plane texture="textures/backgrounds/forest_bg03.png" x="-518" y="134" z="-300" width="1500" height="1500" priority="0" rotation="0" />
 		<plane texture="textures/backgrounds/forest_bg03.png" x="482" y="134" z="-600" width="1500" height="1500" priority="0" rotation="0" />
-		<plane texture="textures/backgrounds/forest_bg_light.png" x="-197" y="-297" z="103" width="1000" height="1000" offset_anim_x_move="35" offset_anim_x_duration="4" offset_anim_x_time_offset="2.5" blend_mode="additive" priority="0" rotation="0" />
-		<plane texture="textures/backgrounds/forest_bg_light.png" x="26" y="-74" z="103" width="1212" height="1212" offset_anim_x_move="35" offset_anim_x_duration="4" offset_anim_x_time_offset="0.8" blend_mode="additive" priority="0" rotation="0" />
 	</background>
 	<foreground>
+		<plane texture="textures/backgrounds/forest_bg_light.png" x="-197" y="-297" z="103" width="1000" height="1000" offset_anim_x_move="35" offset_anim_x_duration="4" offset_anim_x_time_offset="2.5" blend_mode="additive" priority="0" rotation="0" />
+		<plane texture="textures/backgrounds/forest_bg_light.png" x="26" y="-74" z="103" width="1212" height="1212" offset_anim_x_move="35" offset_anim_x_duration="4" offset_anim_x_time_offset="0.8" blend_mode="additive" priority="0" rotation="0" />
 		<particle effect_file="effects/forestfalls/bees_to_left.trigger" x="475" y="0" z="0" />
 		<particle effect_file="effects/forestfalls/bees_to_right.trigger" x="-475" y="0" z="0" />
 		<particle effect_file="effects/forestfalls/bees.trigger" x="0" y="0" z="50" />
-		<plane texture="textures/backgrounds/forest_bg_darkedge.png" x="-433" y="265" z="0" rotation="180" width="128" height="1913" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg_darkedge.png" x="431" y="356" z="0" width="128" height="2197" priority="0" rotation="0" />
+		<plane texture="textures/backgrounds/forest_bg_darkedge.png" x="-590" y="265" z="0" rotation="180" width="128" height="1913" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_darkedge.png" x="560" y="356" z="0" width="128" height="2197" priority="0" rotation="0" />
 <!--	<plane texture="textures/backgrounds/forest_bg_lightedge.png" x="-12" y="-633" z="0" rotation="90" width="128" height="1000" priority="0" /> -->
-		<plane texture="textures/backgrounds/forest_bg_darkedge.png" x="2" y="592" z="0" rotation="270" width="128" height="1000" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_darkedge.png" x="2" y="500" z="0" rotation="270" width="128" height="1000" priority="0" />
 		<plane texture="textures/backgrounds/forest_bg_light.png" x="-197" y="-297" z="103" width="1000" height="1000" offset_anim_x_move="35" offset_anim_x_duration="4" offset_anim_x_time_offset="2.5" blend_mode="additive" priority="0" rotation="0" />
 		<plane texture="textures/backgrounds/forest_bg_light.png" x="26" y="-74" z="103" width="1212" height="1212" offset_anim_x_move="35" offset_anim_x_duration="4" offset_anim_x_time_offset="0.8" blend_mode="additive" priority="0" rotation="0" />
-		<plane texture="textures/backgrounds/forest_bg03.png" x="-788" y="-725" z="15" rotation="-53" width="1456" height="1108" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg03.png" x="-833" y="-565" z="8" rotation="-45" width="1289" height="1006" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg02.png" x="855" y="-615" z="183" rotation="52" width="1289" height="1006" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg03.png" x="-820" y="-465" z="175" rotation="-45" width="1289" height="1006" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-425" y="342" z="200" rotation="-50" width="311" height="130" priority="0">
+		<plane texture="textures/backgrounds/forest_bg03.png" x="-1100" y="-660" z="15" rotation="-53" width="1456" height="1108" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg03.png" x="-1150" y="-710" z="8" rotation="-45" width="1289" height="1006" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg02.png" x="1055" y="-745" z="183" rotation="52" width="1289" height="1006" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg03.png" x="-1020" y="-595" z="175" rotation="-45" width="1289" height="1006" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-525" y="537" z="200" rotation="-50" width="311" height="130" priority="0">
 			<color_whole_quad r="120" g="120" b="120" a="255" />
 		</plane>
-		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-375" y="436" z="200" rotation="-30" width="300" height="150" priority="0">
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-475" y="521" z="200" rotation="-30" width="300" height="150" priority="0">
 			<color_whole_quad r="120" g="120" b="120" a="255" />
 		</plane>
-		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-390" y="530" z="200" rotation="-20" width="429" height="203" priority="0">
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-490" y="515" z="200" rotation="-20" width="429" height="203" priority="0">
 			<color_whole_quad r="120" g="120" b="120" a="255" />
 		</plane>
-		<plane texture="textures/backgrounds/forest_bg_floor.png" x="357" y="517" z="200" width="200" height="100" priority="0" rotation="0">
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="487" y="525" z="200" width="200" height="100" priority="0" rotation="0">
 			<color_whole_quad r="120" g="120" b="120" a="255" />
 		</plane>
-		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-455" y="417" z="100" rotation="-31" width="423" height="183" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor2.png" x="400" y="538" z="100" rotation="20" width="200" height="100" priority="0" />
-
-		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-280" y="588" z="45" rotation="10" width="120" height="60" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor2.png" x="-180" y="598" z="35" rotation="-10" width="120" height="60" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-80" y="588" z="55" rotation="-8" width="120" height="60" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor2.png" x="20" y="588" z="65" width="120" height="60" priority="0" rotation="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor.png" x="120" y="608" z="45" width="120" height="60" priority="0" rotation="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor2.png" x="220" y="588" z="55" rotation="10" width="120" height="60" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor.png" x="310" y="575" z="55" width="120" height="60" priority="0" rotation="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor3.png" x="67" y="611" z="25" rotation="0" width="70" height="115" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor4.png" x="-250" y="558" z="95" rotation="0" width="120" height="120" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor4.png" x="170" y="598" z="25" rotation="-20" width="100" height="100" priority="0" />
-		<plane texture="textures/backgrounds/forest_bg_floor4.png" x="310" y="578" z="65" rotation="45" width="120" height="120" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-555" y="542" z="100" rotation="-31" width="423" height="183" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor2.png" x="500" y="533" z="100" rotation="20" width="200" height="100" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-380" y="547" z="45" rotation="10" width="120" height="60" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor2.png" x="-180" y="538" z="35" rotation="-10" width="120" height="60" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="-80" y="533" z="55" rotation="-8" width="120" height="60" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor2.png" x="20" y="533" z="65" width="120" height="60" priority="0" rotation="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="120" y="527" z="45" width="120" height="60" priority="0" rotation="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor2.png" x="220" y="543" z="55" rotation="10" width="120" height="60" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="310" y="553" z="55" width="120" height="60" priority="0" rotation="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor3.png" x="67" y="551" z="25" rotation="0" width="70" height="115" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor4.png" x="-250" y="531" z="95" rotation="0" width="120" height="120" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor4.png" x="170" y="523" z="25" rotation="-20" width="100" height="100" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor4.png" x="310" y="523" z="65" rotation="45" width="120" height="120" priority="0" />
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="525" y="537" z="200" rotation="50" width="311" height="130" priority="0">
+			<color_whole_quad r="120" g="120" b="120" a="255" />
+		</plane>
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="475" y="521" z="200" rotation="30" width="300" height="150" priority="0">
+			<color_whole_quad r="120" g="120" b="120" a="255" />
+		</plane>
+		<plane texture="textures/backgrounds/forest_bg_floor.png" x="490" y="515" z="200" rotation="20" width="429" height="203" priority="0">
+			<color_whole_quad r="120" g="120" b="120" a="255" />
+		</plane>
 	</foreground>
 </shoebox>

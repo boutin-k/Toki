@@ -30,6 +30,14 @@ void Forest::buildBoard() {
   // Build the board
   uint32_t size = data.getLevelSize();
   for (uint32_t i = 0U; i < size; ++i) {
+
+    if ((data.levelMap[i]&0xFF00)) {
+      levelTiles.setTextureRect(sprites[(data.levelMap[i]&0xFF00)>>8]);
+      levelTiles.setPosition((i % data.levelWidth) << 5,
+                             (i / data.levelWidth) << 5);
+      mapRender.draw(levelTiles);
+    }
+
     // Find toki start position
     if ((data.levelMap[i] & 0xFF) == 0xFD) {
       startPosition.x = (((i + 1) % data.levelWidth) << 5);
@@ -39,23 +47,16 @@ void Forest::buildBoard() {
     // Populate the egg list
     else if ((data.levelMap[i]&0xFF) == 0xFE) {
       eggList.push_back(std::make_unique<TkEgg>(eggTexture,
-                                   ((i+1) % data.levelWidth) << 5,
-                                   ((i+2) / data.levelWidth) << 5));
+                                                ((i+1) % data.levelWidth) << 5,
+                                                ((i+2) / data.levelWidth) << 5));
       data.levelMap[i] +=1;
     }
 
-    if ((data.levelMap[i]&0xFF00)) {
-      levelTiles.setTextureRect(sprites[(data.levelMap[i]&0xFF00)>>8]);
-      levelTiles.setPosition((i % data.levelWidth) << 5,
-                              (i / data.levelWidth) << 5);
-      mapRender.draw(levelTiles);
-    }
-
     // Populate the map
-    if ((data.levelMap[i]&0xFF) != 0xFF) {
+    else if ((data.levelMap[i]&0xFF) != 0xFF) {
       levelTiles.setTextureRect(sprites[(data.levelMap[i]&0xFF)]);
       levelTiles.setPosition((i % data.levelWidth) << 5,
-                              (i / data.levelWidth) << 5);
+                             (i / data.levelWidth) << 5);
       mapRender.draw(levelTiles);
     }
 
@@ -63,7 +64,7 @@ void Forest::buildBoard() {
     if ((data.levelMap[i]&0xFF0000)) {
       levelTiles.setTextureRect(sprites[(data.levelMap[i]&0xFF0000)>>16]);
       levelTiles.setPosition((i % data.levelWidth) << 5,
-                              (i / data.levelWidth) << 5);
+                             (i / data.levelWidth) << 5);
       foregroundRender.draw(levelTiles);
     }
     data.levelMap[i] &= 0xFF;

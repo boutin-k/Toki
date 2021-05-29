@@ -32,7 +32,6 @@ Game::Game(void)
                       cursor.getLocalBounds().height / 2.f);
   }
   window.setFramerateLimit(FRAMERATE);
-//  _window.getDefaultView();
 
   if (score.loadFromFile("textures/backgrounds/score.png")) {
     score.setPosition(window.getSize().x-110.f, 20.f);
@@ -129,6 +128,15 @@ void Game::handlePlayerInput(sf::Keyboard::Key key, bool isPressed) {
     case sf::Keyboard::Down:   movingDown  = isPressed; break;
     case sf::Keyboard::Left:   movingLeft  = isPressed; break;
     case sf::Keyboard::Right:  movingRight = isPressed; break;
+    case sf::Keyboard::R: {
+      delete level;
+      // Restore the default viewport
+      window.setView(window.getDefaultView());
+      // Launch the new level
+      level = new Forest(window.getSize());
+      level->createLevel(levelList[levelIndex]);
+      break;
+    }
     default: break;
   }
   // clang-format on
@@ -160,7 +168,7 @@ void Game::render() {
   window.clear(sf::Color(255, 255, 255, 255));
   level->render(window);
   window.draw(score);
-  window.draw(cursor);
   window.draw(text);
+  window.draw(cursor);
   window.display();
 }

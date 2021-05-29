@@ -1,8 +1,6 @@
 #include "tkshoebox.h"
 #include "pugixml.hpp"
 
-#include <unordered_map>
-
 TkShoebox::TkShoebox() {}
 
 TkShoebox::~TkShoebox() {
@@ -25,18 +23,17 @@ void TkShoebox::init(const pugi::xml_document& domDocument,
 void TkShoebox::initShoebox(
     const pugi::xml_node& node, const sf::Vector2f& center,
     std::list<std::pair<float, std::unique_ptr<TkImage>>>& list, float ratio) {
-  std::unordered_map<std::string, sf::Texture> textures;
 
   for (auto item : node.children("plane")) {
     std::string path = item.attribute("texture").value();
 
     if (textures.find(path) == textures.end()) {
-      sf::Texture texture;
-      texture.setSmooth(true);
-      if (texture.loadFromFile(path))
+      auto texture = std::make_unique<sf::Texture>();
+      texture->setSmooth(true);
+      if (texture->loadFromFile(path))
         textures.insert({path, std::move(texture)});
     }
-    auto plane = std::make_unique<TkImage>(textures[path]);
+    auto plane = std::make_unique<TkImage>(*textures[path]);
     auto textureSize = plane->texture.getSize();
 
     plane->setTkOrigin(TkImage::center);

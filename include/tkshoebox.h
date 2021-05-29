@@ -3,6 +3,7 @@
 
 #include <list>
 #include <memory>
+#include <unordered_map>
 
 #include "tkimage.h"
 
@@ -25,13 +26,13 @@ class TkShoebox
   inline const auto& getFrontList() {return frontShoeboxList;}
 
  private:
-  void initShoebox(const pugi::xml_node& node,
-                   const sf::Vector2f& center,
-                   std::list<std::pair<float, std::unique_ptr<TkImage>>>& list,
-                   float ratio = 1.f);
+  void initShoebox(const pugi::xml_node& node, const sf::Vector2f& center,
+                   std::list<std::pair<float, std::unique_ptr<TkImage>>>& list, float ratio = 1.f);
 
-  std::list<std::pair<float, std::unique_ptr<TkImage>>>     backShoeboxList;
-  std::list<std::pair<float, std::unique_ptr<TkImage>>>     frontShoeboxList;
+  std::list<std::pair<float, std::unique_ptr<TkImage>>>          backShoeboxList;
+  std::list<std::pair<float, std::unique_ptr<TkImage>>>          frontShoeboxList;
+
+  std::unordered_map<std::string, std::unique_ptr<sf::Texture>>  textures;
 };
 
 #endif // TKSHOEBOX_H

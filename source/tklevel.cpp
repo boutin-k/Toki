@@ -97,7 +97,7 @@ void TkLevel::createLevel(const std::string& levelName) {
   mapRender.clear(sf::Color::Transparent);
 
   if (!foregroundRender.create(data.levelWidth << 5, data.levelHeight << 5))
-    throw "Cannot create map renderTexture";
+    throw "Cannot create foreground renderTexture";
   foregroundRender.clear(sf::Color::Transparent);
 
   // Load the level map

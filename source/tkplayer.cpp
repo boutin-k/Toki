@@ -64,14 +64,14 @@ TkPlayer::TkPlayer()
     } },
     { TkPlayer::anim::quarterLeftFront,  { 0U, 2U, &mTurn,
       [this](uint32_t /*spriteIndex*/){
-        if (/*spriteIndex == mTurn.getLastSprite()*/mTurn.isAnimationFinished()) animState = idleState;
+        if (mTurn.isAnimationFinished()) animState = idleState;
         return sf::Vector2f();
       },
       true, { }, { }
     } },
     { TkPlayer::anim::quarterRightFront, { 16U, 18U, &mTurn,
       [this](uint32_t /*spriteIndex*/){
-        if (/*spriteIndex == mTurn.getLastSprite()*/mTurn.isAnimationFinished()) animState = idleState;
+        if (mTurn.isAnimationFinished()) animState = idleState;
         return sf::Vector2f();
       },
       true, { }, { }

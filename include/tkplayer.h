@@ -29,6 +29,9 @@ class TkPlayer : public TkEntity {
   inline void setVisible() { if (animState == anim::none) animState = anim::appear; }
   inline anim getStandState() const { return lastStand; }
 
+  inline bool syncPosition() {
+    return (entity != nullptr && entity->isAnimationFinished());
+  }
 
   inline bool actionAuthorized() {
     switch (animState) {

@@ -140,6 +140,11 @@ void TkLevel::move(const sf::Vector2f& offset) {
       center.y = maxLimit.y;
     }
 
+    if (player.syncPosition()) {
+      center.x = (int)(center.x + 0.5f);
+      center.y = (int)(center.y + 0.5f);
+    }
+
     // Move the shoebox
     shoebox.move(center - view.getCenter());
     view.setCenter(center);

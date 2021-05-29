@@ -38,26 +38,32 @@ void Forest::buildBoard() {
       mapRender.draw(levelTiles);
     }
 
-    // Find toki start position
-    if ((data.levelMap[i] & 0xFF) == 0xFD) {
-      startPosition.x = (((i + 1) % data.levelWidth) << 5);
-      startPosition.y = (((i + 2) / data.levelWidth) << 5);
-    }
-
-    // Populate the egg list
-    else if ((data.levelMap[i]&0xFF) == 0xFE) {
-      eggList.push_back(std::make_unique<TkEgg>(eggTexture,
-                                                ((i+1) % data.levelWidth) << 5,
-                                                ((i+2) / data.levelWidth) << 5));
-      data.levelMap[i] +=1;
-    }
-
-    // Populate the map
-    else if ((data.levelMap[i]&0xFF) != 0xFF) {
-      levelTiles.setTextureRect(sprites[(data.levelMap[i]&0xFF)]);
-      levelTiles.setPosition((i % data.levelWidth) << 5,
-                             (i / data.levelWidth) << 5);
-      mapRender.draw(levelTiles);
+    switch (data.levelMap[i] & 0xFF) {
+      case 0xFD: {
+        // Toki start position
+        startPosition.x = (((i + 1) % data.levelWidth) << 5);
+        startPosition.y = (((i + 2) / data.levelWidth) << 5);
+        data.levelMap[i] |= 0xFF;
+        break;
+      }
+      case 0xFE: {
+        // Populate the egg list
+        eggList.push_back(std::make_unique<TkEgg>(eggTexture,
+                                                  ((i+1) % data.levelWidth) << 5,
+                                                  ((i+2) / data.levelWidth) << 5));
+        data.levelMap[i] |= 0xFF;
+        break;
+      }
+      case 0xFF:
+        break;
+      default: {
+        // Populate the map
+        levelTiles.setTextureRect(sprites[(data.levelMap[i]&0xFF)]);
+        levelTiles.setPosition((i % data.levelWidth) << 5,
+                               (i / data.levelWidth) << 5);
+        mapRender.draw(levelTiles);
+        break;
+      }
     }
 
     // Populate the map

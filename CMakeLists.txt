@@ -2,16 +2,16 @@ cmake_minimum_required(VERSION 3.5)
 
 project(TokiTori LANGUAGES CXX)
 include_directories(
-    ${PROJECT_SOURCE_DIR}/../SFML-lib-2.5.1/include
-    ${PROJECT_SOURCE_DIR}/../pugixml-lib-1.11/include
+    ${PROJECT_SOURCE_DIR}/3rdParty/SFML/include
+    ${PROJECT_SOURCE_DIR}/3rdParty/pugixml/include
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/source
 )
 
-link_directories(${PROJECT_SOURCE_DIR}/../SFML-lib-2.5.1/lib)
+link_directories(${PROJECT_SOURCE_DIR}/3rdParty/SFML/lib)
 link_libraries(sfml-audio sfml-graphics sfml-network sfml-system sfml-window)
 
-link_directories(${PROJECT_SOURCE_DIR}/../pugixml-lib-1.11/lib)
+link_directories(${PROJECT_SOURCE_DIR}/3rdParty/pugixml/lib)
 link_libraries(pugixml)
 
 

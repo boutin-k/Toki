@@ -12,9 +12,9 @@
 class Game {
   std::vector<std::string> levelList {
 //    { "maps/ForestFalls/TestShoebox.tokilevel" },
-//    { "maps/ForestFalls/01_ForestFalls.tokilevel" },
+    { "maps/ForestFalls/01_ForestFalls.tokilevel" },
     { "maps/ForestFalls/02_ForestFalls.tokilevel" },
-    { "maps/ForestFalls/03_ForestFalls.tokilevel" },
+//    { "maps/ForestFalls/03_ForestFalls.tokilevel" },
     { "maps/ForestFalls/charlie1.tokilevel" },
     { "maps/ForestFalls/charlie2.tokilevel" },
     { "maps/ForestFalls/charlie3.tokilevel" },
